@@ -33,18 +33,18 @@
   "projects": [
     {
       "id": "p1",
-      "name": "Mesa de ensamble modular",
-      "category": "Diseño CAD",
-      "description": "Diseño paramétrico de mesa modular con ensambles sin herrajes, orientada a producción en serie. Incluye planos de despiece, explosión y documentación técnica.",
+      "name": "Mesa de centro",
+      "category": "Diseño Solidworks",
+      "description": "Mesita de centro, cubierta con resina y base metálica.",
       "date": "2024-08",
       "software": [
         "SolidWorks",
-        "AutoCAD",
-        "KeyShot"
+        "AutoCAD"
       ],
       "images": [
         "assets/p1-1.jpg",
-        "assets/p1-2.jpg"
+        "assets/p1-2.jpg",
+        "assets/1000171112-mwl6ui43.jpg"
       ],
       "documents": [
         {
@@ -54,6 +54,10 @@
         {
           "label": "Memoria técnica",
           "url": "documents/p1-memoria.pdf"
+        },
+        {
+          "label": "IFD4851CKT",
+          "url": "documents/IFD4851CKT-mwl6snp2.pdf"
         }
       ],
       "links": [
@@ -62,8 +66,9 @@
           "url": "https://www.behance.net/"
         }
       ],
-      "notes": "Optimizado para corte CNC. Tolerancias ±0.5 mm.",
-      "featured": true
+      "notes": "",
+      "featured": true,
+      "hidden": true
     },
     {
       "id": "p2",
