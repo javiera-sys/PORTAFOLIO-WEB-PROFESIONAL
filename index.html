@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  meta charset, viewport, description, title
+  link styles.css
+  preconnect fonts? Use system fonts to avoid deps... The user wants modern typography. I'll use Google Fonts (Inter) — that's a dependency but acceptable? "Evitar dependencias innecesarias" — fonts are fine, but for offline robustness maybe use system font stack. I'll use Google Fonts with fallback to system stack. Actually GitHub Pages works fine with Google Fonts. I'll include Inter + fallback.
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"> ... nav ... </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <main class="main">
+      <header class="topbar">
+        <button menu toggle>
+        <div class="topbar-search"> input buscador general </div>
+        <div class="topbar-actions"> theme toggle? admin btn </div>
+      </header>
+      <div class="content" id="content">
+        <section id="section-inicio" class="section">...</section>
+        ...
+      </div>
+      <footer>
+    </main>
+  </div>
+  modals: projectModal, lightbox, pdfModal, adminModal
+  script.js
+</body>
