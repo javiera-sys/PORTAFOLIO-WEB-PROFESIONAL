@@ -11,6 +11,14 @@
   const DRAFT_KEY = 'portfolio_draft_v1';
   const THEME_KEY = 'portfolio_theme';
 
+  // ⚠️ CAMBIA AQUÍ tus datos de GitHub (se usan para prellenar el modal)
+  const GH_DEFAULTS = {
+    owner:  'TU-USUARIO',   // ej: 'juanperez'
+    repo:   'TU-REPO',      // ej: 'portafolio'
+    branch: 'main',
+    path:   'projects.json'
+  };
+
   function toast(msg, type = '') {
     const el = document.createElement('div');
     el.className = 'toast ' + type;
@@ -143,7 +151,8 @@
     projectFilter: 'Todos',
     projectQuery: '',
     galleryFilter: 'Todas',
-    lightbox: { items: [], index: 0 }
+    lightbox: { items: [], index: 0 },
+    ghBusy: false
   };
 
   async function loadData() {
@@ -503,6 +512,9 @@
     });
   }
 
+  /* =========================================================
+     ADMINISTRACIÓN
+     ========================================================= */
   const SCHEMAS = {
     profile: {
       label: 'Perfil', singleton: true, dataKey: 'profile',
@@ -729,11 +741,13 @@
       saveDraft();
       renderAll();
       renderAdmin();
-      toast('Guardado como borrador local. Exporta el JSON para publicar.', 'success');
+      toast('Guardado como borrador local. Pulsa "Guardar en GitHub" para publicar.', 'success');
     });
   }
 
+  /* ---------- Guardar / Exportar / Importar ---------- */
   function bindAdminIO() {
+    // Exportar copia local
     $('#btnExport').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(state.data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
@@ -741,9 +755,10 @@
       a.download = 'projects.json';
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 500);
-      toast('projects.json exportado. Reemplázalo en el repositorio y haz commit.', 'success');
+      toast('Copia local descargada.', 'success');
     });
 
+    // Importar JSON
     $('#btnImport').addEventListener('click', () => $('#importFile').click());
     $('#importFile').addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -765,9 +780,126 @@
       e.target.value = '';
     });
 
+    // Descartar borrador
     $('#discardDraft').addEventListener('click', clearDraft);
+
+    // Abrir modal de GitHub
+    $('#btnSaveGithub').addEventListener('click', () => {
+      const saved = JSON.parse(sessionStorage.getItem('gh_session') || '{}');
+      $('#ghOwner').value  = saved.owner  || GH_DEFAULTS.owner;
+      $('#ghRepo').value   = saved.repo   || GH_DEFAULTS.repo;
+      $('#ghBranch').value = saved.branch || GH_DEFAULTS.branch;
+      $('#ghPath').value   = saved.path   || GH_DEFAULTS.path;
+      $('#ghToken').value  = '';
+      $('#ghStatus').textContent = '';
+      $('#ghStatus').className = 'small';
+      openModal('ghModal');
+      setTimeout(() => $('#ghToken').focus(), 150);
+    });
+
+    $('#ghConfirm').addEventListener('click', saveToGitHub);
   }
 
+  async function saveToGitHub() {
+    if (state.ghBusy) return;
+    const owner  = $('#ghOwner').value.trim();
+    const repo   = $('#ghRepo').value.trim();
+    const branch = $('#ghBranch').value.trim() || 'main';
+    const path   = $('#ghPath').value.trim() || 'projects.json';
+    const token  = $('#ghToken').value.trim();
+    const msg    = $('#ghMsg').value.trim() || 'Actualizar portafolio desde el panel';
+
+    const status = $('#ghStatus');
+    const setStatus = (txt, cls) => { status.textContent = txt; status.className = 'small ' + (cls || ''); };
+
+    if (!owner || !repo) { setStatus('Faltan usuario y/o repositorio.', 'err'); return; }
+    if (!token)          { setStatus('Falta el token de GitHub.', 'err'); return; }
+    if (!/^github_pat_|^ghp_/.test(token)) {
+      setStatus('El token no parece válido (debe empezar por github_pat_ o ghp_).', 'err'); return;
+    }
+
+    state.ghBusy = true;
+    const btn = $('#ghConfirm');
+    btn.disabled = true;
+    btn.textContent = 'Guardando…';
+    setStatus('Conectando con GitHub…', 'work');
+
+    sessionStorage.setItem('gh_session', JSON.stringify({ owner, repo, branch, path }));
+
+    const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+
+    try {
+      // 1) Obtener SHA actual (si existe)
+      let sha = null;
+      setStatus('Leyendo archivo actual…', 'work');
+      const getRes = await fetch(`${apiBase}?ref=${branch}`, { headers });
+      if (getRes.ok) {
+        const meta = await getRes.json();
+        sha = meta.sha;
+      } else if (getRes.status !== 404) {
+        const errText = await getRes.text();
+        throw new Error(`No se pudo leer el archivo (HTTP ${getRes.status}). ${errText.slice(0, 120)}`);
+      }
+
+      // 2) Codificar en Base64 (soporta tildes/emojis)
+      setStatus('Preparando contenido…', 'work');
+      const jsonStr = JSON.stringify(state.data, null, 2);
+      const bytes = new TextEncoder().encode(jsonStr);
+      let bin = '';
+      bytes.forEach(b => bin += String.fromCharCode(b));
+      const contentB64 = btoa(bin);
+
+      // 3) PUT con el nuevo contenido
+      setStatus('Subiendo a GitHub…', 'work');
+      const body = { message: msg, content: contentB64, branch };
+      if (sha) body.sha = sha;
+
+      const putRes = await fetch(apiBase, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!putRes.ok) {
+        let detail = '';
+        try { const j = await putRes.json(); detail = j.message || ''; } catch {}
+        throw new Error(`GitHub respondió ${putRes.status}. ${detail}`);
+      }
+
+      const putJson = await putRes.json();
+      const commitUrl = putJson.commit?.html_url || '';
+      setStatus('✅ Guardado. GitHub Pages publicará los cambios en 1–3 minutos.', 'ok');
+      toast('Cambios subidos a GitHub correctamente.', 'success');
+
+      // Copia de seguridad (no afecta la web pública)
+      try { localStorage.setItem('portfolio_backup_last', jsonStr); } catch {}
+
+      if (commitUrl) {
+        const link = document.createElement('a');
+        link.href = commitUrl; link.target = '_blank'; link.rel = 'noopener';
+        link.textContent = 'Ver commit en GitHub ↗';
+        link.style.cssText = 'display:inline-block;margin-top:8px;font-size:13px;';
+        status.appendChild(document.createElement('br'));
+        status.appendChild(link);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus('❌ ' + (err.message || 'Error desconocido.'), 'err');
+      toast('No se pudo guardar en GitHub: ' + (err.message || ''), 'error');
+    } finally {
+      state.ghBusy = false;
+      btn.disabled = false;
+      btn.textContent = '💾 Confirmar guardado';
+      $('#ghToken').value = '';
+    }
+  }
+
+  /* ---------- Bind UI ---------- */
   function bindUI() {
     $$('.nav-item').forEach(b => b.addEventListener('click', () => navigate(b.dataset.nav)));
     $$('[data-nav]').forEach(b => {
@@ -799,6 +931,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if ($('#lightbox').classList.contains('open')) lbClose();
+        else if ($('#ghModal').classList.contains('open')) closeModal('ghModal');
         else if ($('#pdfModal').classList.contains('open')) closeModal('pdfModal');
         else if ($('#projectModal').classList.contains('open')) closeModal('projectModal');
       }
