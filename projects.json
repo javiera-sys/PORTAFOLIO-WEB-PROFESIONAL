@@ -142,27 +142,29 @@
     },
     {
       "id": "p5",
-      "name": "Calculadora de despiece",
-      "category": "Desarrollo web",
-      "description": "Herramienta web para cálculo de despiece y optimización de corte. HTML, CSS y JavaScript puro.",
+      "name": "Comedor redondo",
+      "category": "Diseño SolidWorks",
+      "description": "Comedor redondo, cubierta con resina y base solida de madera.",
       "date": "2024-02",
       "software": [
-        "HTML5",
-        "CSS3",
-        "JavaScript"
+        "SolidWorks",
+        "AutoCAD"
       ],
       "images": [
-        "assets/p5-1.jpg"
+        "assets/260410_78OXKW0GHG-mwl7xthk.jpg",
+        "assets/260416_G5QXV50LX3-mwl7xumy.jpg",
+        "assets/260326_UU913VZVM2-mwl7xw9k.jpg"
       ],
-      "documents": [],
-      "links": [
+      "documents": [
         {
-          "label": "Abrir demo",
-          "url": "https://github.com/"
+          "label": "IFD6471RNDTP",
+          "url": "documents/IFD6471RNDTP-mwl7xxp7.pdf"
         }
       ],
+      "links": [],
       "notes": "Sin dependencias externas.",
-      "featured": true
+      "featured": true,
+      "hidden": false
     }
   ],
   "gallery": [
