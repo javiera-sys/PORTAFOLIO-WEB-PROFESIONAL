@@ -18,6 +18,19 @@
     branch: 'main',
     path:   'projects.json'
   };
+  const DEFAULT_TITLE = document.title;
+
+  /* ---------- Acceso de administrador (solo hash, nunca la contraseña) ---------- */
+  const AUTH = { user: 'javier.c', salt: '952b89db6657110046fdfc2a124e5926', iter: 150000, hash: 'b230dbdf020354674f09fd324b6d6fb40c0249215d971b292da61bb83df5ac5b' };
+  const SECS = [['proyectos','Proyectos'],['galeria','Galería'],['aplicaciones','Aplicaciones'],['habilidades','Habilidades'],['experiencia','Experiencia'],['contacto','Contacto']];
+  const enc = new TextEncoder();
+  const hex = b => Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+  const unhex = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
+  const showAll = () => state.admin && !state.preview;                       // el admin ve todo, salvo en "vista pública"
+  const vis = arr => (arr || []).filter(x => showAll() || !x.hidden);       // oculta elementos marcados
+  const ph = (o, k) => !showAll() && !!(o && o.hide && o.hide[k]);          // campo oculto de perfil/contacto
+  const secHidden = k => !!((state.data && state.data.site) || {})[k + '_hide'];
+  const badge = x => (x && x.hidden && showAll()) ? ' <span class="badge-hidden">Oculto</span>' : '';
 
   function toast(msg, type = '') {
     const el = document.createElement('div');
@@ -152,20 +165,29 @@
     projectQuery: '',
     galleryFilter: 'Todas',
     lightbox: { items: [], index: 0 },
-    ghBusy: false
+    ghBusy: false,
+    admin: false,
+    preview: false,
+    pw: null
   };
 
   async function loadData() {
-    const draft = localStorage.getItem(DRAFT_KEY);
-    if (draft) {
-      try { state.data = JSON.parse(draft); state.isDraft = true; return; } catch (e) { /* ignora */ }
-    }
+    let pub;
     try {
-      const res = await fetch('projects.json', { cache: 'no-store' });
+      const res = await fetch('projects.json?_=' + Date.now(), { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      state.data = await res.json();
-    } catch (e) {
-      state.data = JSON.parse(JSON.stringify(FALLBACK));
+      pub = await res.json();
+    } catch (e) { pub = JSON.parse(JSON.stringify(FALLBACK)); }
+    state.data = pub; state.isDraft = false;
+    if (state.admin) {
+      const draft = localStorage.getItem(DRAFT_KEY);
+      if (draft) {
+        try {
+          const d = JSON.parse(draft);
+          if (JSON.stringify(d) === JSON.stringify(pub)) localStorage.removeItem(DRAFT_KEY);
+          else { state.data = d; state.isDraft = true; }
+        } catch (e) { /* ignora */ }
+      }
     }
   }
 
@@ -183,6 +205,8 @@
   }
 
   function navigate(section) {
+    if (section === 'admin' && !state.admin) { openLogin(); return; }
+    if (section !== 'inicio' && section !== 'admin' && secHidden(section) && !showAll()) section = 'inicio';
     state.section = section;
     $$('.section').forEach(el => el.classList.remove('active'));
     const target = $('#section-' + section);
@@ -213,26 +237,30 @@
     const cvUrl = p.cv || 'documents/cv.pdf';
     $('#btnCv').href = cvUrl;
     $('#sidebarCv').href = cvUrl;
+    [['photo','.hero-media'],['status','#profileStatus'],['role','#profileRole'],['specialty','#profileSpecialty'],['description','#profileDesc'],['experienceYears','#profileStats'],['specialties','#profileSpecialties'],['cv','#btnCv'],['cv','#sidebarCv']]
+      .forEach(([k, sel]) => { $(sel).style.display = ph(p, k) ? 'none' : ''; });
+    const hs = $('#homeSpecialties').closest('.card'); if (hs) hs.style.display = ph(p, 'specialties') ? 'none' : '';
 
     const stats = [
       { n: p.experienceYears || 0, l: 'Años de experiencia' },
-      { n: (state.data.projects || []).length, l: 'Proyectos' },
-      { n: (state.data.apps || []).length, l: 'Aplicaciones' },
-      { n: (state.data.skills || []).length, l: 'Habilidades' }
+      { n: (vis(state.data.projects)).length, l: 'Proyectos' },
+      { n: (vis(state.data.apps)).length, l: 'Aplicaciones' },
+      { n: (vis(state.data.skills)).length, l: 'Habilidades' }
     ];
     $('#profileStats').innerHTML = stats.map(s => `<div class="stat"><strong>${esc(s.n)}</strong><span>${esc(s.l)}</span></div>`).join('');
     $('#profileSpecialties').innerHTML = (p.specialties || []).map(s => `<span class="chip">${esc(s)}</span>`).join('');
     $('#homeSpecialties').innerHTML = (p.specialties || []).slice(0, 6).map(s => `
       <div class="mini-item"><span class="dot"></span><span>${esc(s)}</span></div>`).join('') || '<p class="muted small">Sin especialidades configuradas.</p>';
 
-    const featured = (state.data.projects || []).filter(pr => pr.featured).slice(0, 5);
+    const featured = (vis(state.data.projects)).filter(pr => pr.featured).slice(0, 5);
     $('#homeFeatured').innerHTML = featured.length
       ? featured.map(pr => `<div class="mini-item"><span class="dot"></span><span>${esc(pr.name)}</span><span class="meta">${esc(pr.category || '')}</span></div>`).join('')
       : '<p class="muted small">Marca proyectos como "destacado" desde el panel.</p>';
   }
 
   function renderProjectFilters() {
-    const cats = ['Todos', ...new Set((state.data.projects || []).map(p => p.category).filter(Boolean))];
+    const cats = ['Todos', ...new Set((vis(state.data.projects)).map(p => p.category).filter(Boolean))];
+    if (!cats.includes(state.projectFilter)) state.projectFilter = 'Todos';
     $('#projectFilters').innerHTML = cats.map(c =>
       `<button class="filter-chip ${state.projectFilter === c ? 'active' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`
     ).join('');
@@ -243,7 +271,7 @@
 
   function filteredProjects() {
     const q = state.projectQuery.trim().toLowerCase();
-    return (state.data.projects || []).filter(p => {
+    return (vis(state.data.projects)).filter(p => {
       const catOK = state.projectFilter === 'Todos' || p.category === state.projectFilter;
       if (!catOK) return false;
       if (!q) return true;
@@ -265,7 +293,7 @@
                onerror="this.src='${PLACEHOLDER}'">
         </div>
         <div class="project-body">
-          <span class="project-cat">${esc(p.category || 'Sin categoría')}</span>
+          <span class="project-cat">${esc(p.category || 'Sin categoría')}${badge(p)}</span>
           <h3 class="project-title">${esc(p.name)}</h3>
           <p class="project-desc">${esc(p.description || '')}</p>
           <div class="project-tags">${(p.software || []).slice(0, 4).map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>
@@ -283,7 +311,7 @@
   }
 
   function openProjectModal(id) {
-    const p = (state.data.projects || []).find(x => x.id === id);
+    const p = (vis(state.data.projects)).find(x => x.id === id);
     if (!p) return;
     $('#pmTitle').textContent = p.name;
     const images = (p.images || []).map((src, i) => `
@@ -370,7 +398,8 @@
   function lbClose() { $('#lightbox').classList.remove('open'); document.body.style.overflow = ''; }
 
   function renderGallery() {
-    const cats = ['Todas', ...new Set((state.data.gallery || []).map(g => g.category).filter(Boolean))];
+    const cats = ['Todas', ...new Set((vis(state.data.gallery)).map(g => g.category).filter(Boolean))];
+    if (!cats.includes(state.galleryFilter)) state.galleryFilter = 'Todas';
     $('#galleryFilters').innerHTML = cats.map(c =>
       `<button class="filter-chip ${state.galleryFilter === c ? 'active' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`
     ).join('');
@@ -378,7 +407,7 @@
       state.galleryFilter = b.dataset.cat; renderGallery();
     }));
 
-    const items = (state.data.gallery || []).filter(g => state.galleryFilter === 'Todas' || g.category === state.galleryFilter);
+    const items = (vis(state.data.gallery)).filter(g => state.galleryFilter === 'Todas' || g.category === state.galleryFilter);
     $('#galleryCount').textContent = items.length + ' imagen' + (items.length === 1 ? '' : 'es');
     $('#galleryEmpty').hidden = items.length !== 0;
 
@@ -386,7 +415,7 @@
       <div class="gallery-tile" data-idx="${i}">
         <img src="${esc(g.image || PLACEHOLDER_SQ)}" alt="${esc(g.title)}" loading="lazy"
              onerror="this.src='${PLACEHOLDER_SQ}'">
-        <div class="overlay-txt">${esc(g.title)}</div>
+        <div class="overlay-txt">${esc(g.title)}${badge(g)}</div>
       </div>
     `).join('');
 
@@ -399,7 +428,7 @@
   }
 
   function renderApps() {
-    const apps = state.data.apps || [];
+    const apps = vis(state.data.apps);
     $('#appsGrid').innerHTML = apps.map(a => `
       <article class="project-card" style="cursor:default;">
         <div class="project-thumb">
@@ -407,7 +436,7 @@
                onerror="this.src='${PLACEHOLDER}'">
         </div>
         <div class="project-body">
-          <h3 class="project-title">${esc(a.name)}</h3>
+          <h3 class="project-title">${esc(a.name)}${badge(a)}</h3>
           <p class="project-desc">${esc(a.description || '')}</p>
           <div class="project-tags">${(a.technologies || []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
           ${a.functionality ? `<p class="muted small" style="margin:0;">${esc(a.functionality)}</p>` : ''}
@@ -421,11 +450,11 @@
   }
 
   function renderSkills() {
-    const skills = state.data.skills || [];
+    const skills = vis(state.data.skills);
     $('#skillsGrid').innerHTML = skills.map(s => `
       <div class="skill-card">
         <span class="skill-cat">${esc(s.category || '')}</span>
-        <div class="skill-name">${esc(s.name)}</div>
+        <div class="skill-name">${esc(s.name)}${badge(s)}</div>
         <p class="skill-desc">${esc(s.description || '')}</p>
         <div class="skill-bar"><span style="width:${Math.max(0, Math.min(100, +s.level || 0))}%"></span></div>
         <div class="skill-level">${esc(s.level || 0)}%</div>
@@ -434,12 +463,12 @@
   }
 
   function renderExperience() {
-    const items = state.data.experience || [];
+    const items = vis(state.data.experience);
     $('#timeline').innerHTML = items.map(e => `
       <div class="tl-item">
         <div class="tl-card">
           <div class="tl-period">${esc(e.period || '')}</div>
-          <div class="tl-role">${esc(e.position || '')}</div>
+          <div class="tl-role">${esc(e.position || '')}${badge(e)}</div>
           <div class="tl-company">${esc(e.company || '')}</div>
           ${(e.activities || []).length ? `<ul class="tl-list">${e.activities.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
           ${(e.achievements || []).length ? `<h3 style="font-size:12px;margin:10px 0 4px;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;">Logros</h3><ul class="tl-list">${e.achievements.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
@@ -451,12 +480,12 @@
   function renderContact() {
     const c = state.data.contact || {};
     const cards = [
-      { label: 'Correo', value: c.email, href: c.email ? 'mailto:' + c.email : '', icon: '✉' },
-      { label: 'LinkedIn', value: c.linkedin, href: c.linkedin, icon: 'in' },
-      { label: 'GitHub', value: c.github, href: c.github, icon: '⌥' },
-      { label: 'Teléfono', value: c.phone, href: c.phone ? 'tel:' + c.phone.replace(/\s/g, '') : '', icon: '☎' },
-      { label: 'Currículum', value: 'Descargar PDF', href: c.cv || 'documents/cv.pdf', icon: '⬇', download: true }
-    ].filter(x => x.value);
+      { key: 'email', label: 'Correo', value: c.email, href: c.email ? 'mailto:' + c.email : '', icon: '✉' },
+      { key: 'linkedin', label: 'LinkedIn', value: c.linkedin, href: c.linkedin, icon: 'in' },
+      { key: 'github', label: 'GitHub', value: c.github, href: c.github, icon: '⌥' },
+      { key: 'phone', label: 'Teléfono', value: c.phone, href: c.phone ? 'tel:' + c.phone.replace(/\s/g, '') : '', icon: '☎' },
+      { key: 'cv', label: 'Currículum', value: 'Descargar PDF', href: c.cv || 'documents/cv.pdf', icon: '⬇', download: true }
+    ].filter(x => x.value && !ph(c, x.key));
     $('#contactGrid').innerHTML = cards.map(card => `
       <a class="contact-card" href="${esc(card.href)}" ${card.download ? 'download' : 'target="_blank" rel="noopener"'}>
         <div class="contact-icon">${esc(card.icon)}</div>
@@ -472,15 +501,15 @@
       const q = input.value.trim().toLowerCase();
       if (!q) { box.hidden = true; return; }
       const results = [];
-      (state.data.projects || []).forEach(p => {
+      (vis(state.data.projects)).forEach(p => {
         const hay = [p.name, p.description, p.category, ...(p.software || [])].join(' ').toLowerCase();
         if (hay.includes(q)) results.push({ type: 'Proyecto', label: p.name, action: () => openProjectModal(p.id) });
       });
-      (state.data.apps || []).forEach(a => {
+      (vis(state.data.apps)).forEach(a => {
         const hay = [a.name, a.description, ...(a.technologies || [])].join(' ').toLowerCase();
         if (hay.includes(q)) results.push({ type: 'App', label: a.name, action: () => navigate('aplicaciones') });
       });
-      (state.data.skills || []).forEach(s => {
+      (vis(state.data.skills)).forEach(s => {
         if ((s.name + ' ' + (s.category || '')).toLowerCase().includes(q))
           results.push({ type: 'Habilidad', label: s.name, action: () => navigate('habilidades') });
       });
@@ -597,6 +626,22 @@
     }
   };
 
+  ['projects','gallery','apps','skills','experience'].forEach(k =>
+    SCHEMAS[k].fields.push({ key: 'hidden', label: '🚫 Ocultar al público', type: 'checkbox' }));
+  SCHEMAS.profile.hideable = SCHEMAS.contact.hideable = true;
+  SCHEMAS.site = {
+    label: 'Sitio', singleton: true, dataKey: 'site',
+    fields: [
+      { key: 'pageTitle', label: 'Título de la pestaña del navegador', type: 'text' },
+      { key: 'footer', label: 'Texto del pie de página', type: 'text' },
+      ...SECS.flatMap(([k, name]) => [
+        { key: k + '_hide', label: '🚫 Ocultar sección «' + name + '» al público', type: 'checkbox', full: true },
+        { key: k + '_title', label: name + ' · título', type: 'text' },
+        { key: k + '_sub', label: name + ' · subtítulo', type: 'text' }
+      ])
+    ]
+  };
+
   function renderAdminTabs() {
     const keys = Object.keys(SCHEMAS);
     $('#adminTabs').innerHTML = keys.map(k =>
@@ -633,11 +678,12 @@
           ${items.map(it => `
             <div class="admin-item">
               <div>
-                <strong>${esc(it[schema.titleKey] || it.name || it.id)}</strong>
+                <strong>${esc(it[schema.titleKey] || it.name || it.id)}</strong>${it.hidden ? ' <span class="badge-hidden">Oculto</span>' : ''}
                 ${it.category ? `<div class="muted">${esc(it.category)}</div>` : ''}
               </div>
               <div class="row-actions">
                 <button class="btn btn-sm btn-outline" data-edit="${esc(it.id)}">Editar</button>
+                <button class="btn btn-sm btn-ghost" data-vis="${esc(it.id)}">${it.hidden ? '👁 Mostrar' : '🚫 Ocultar'}</button>
                 <button class="btn btn-sm btn-danger" data-del="${esc(it.id)}">Eliminar</button>
               </div>
             </div>`).join('') || '<p class="muted">No hay elementos todavía.</p>'}
@@ -667,6 +713,12 @@
           </div>`;
         bindForm(schema, item, item, false);
         $('#adminCancel').addEventListener('click', () => { wrap.hidden = true; wrap.innerHTML = ''; });
+      }));
+
+      $$('.admin-item [data-vis]').forEach(b => b.addEventListener('click', () => {
+        const it = items.find(x => x.id === b.dataset.vis); if (!it) return;
+        it.hidden = !it.hidden; saveDraft(); renderAll(); renderAdmin();
+        toast(it.hidden ? 'Oculto al público.' : 'Visible al público.', 'success');
       }));
 
       $$('.admin-item [data-del]').forEach(b => b.addEventListener('click', () => {
@@ -700,7 +752,7 @@
         control = `<input type="text" data-field="${f.key}" value="${esc(v ?? '')}" ${f.required ? 'required' : ''}>`;
       }
       return `<div class="field${full}">
-        <label>${esc(f.label)}</label>
+        <label>${esc(f.label)}${schema.hideable ? ` <span class="hide-toggle"><input type="checkbox" data-hide="${f.key}" ${(value.hide || {})[f.key] ? 'checked' : ''}> ocultar</span>` : ''}</label>
         ${control}
         ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
       </div>`;
@@ -725,6 +777,10 @@
         else out[key] = el.value;
       });
 
+      if (schema.hideable) {
+        out.hide = {};
+        $$('#adminPanel [data-hide]').forEach(el => { if (el.checked) out.hide[el.dataset.hide] = true; });
+      }
       const required = schema.fields.filter(f => f.required);
       for (const f of required) {
         if (!out[f.key]) { toast('El campo "' + f.label + '" es obligatorio.', 'error'); return; }
@@ -785,12 +841,15 @@
 
     // Abrir modal de GitHub
     $('#btnSaveGithub').addEventListener('click', () => {
-      const saved = JSON.parse(sessionStorage.getItem('gh_session') || '{}');
+      const saved = JSON.parse(localStorage.getItem('gh_cfg') || '{}');
       $('#ghOwner').value  = saved.owner  || GH_DEFAULTS.owner;
       $('#ghRepo').value   = saved.repo   || GH_DEFAULTS.repo;
       $('#ghBranch').value = saved.branch || GH_DEFAULTS.branch;
       $('#ghPath').value   = saved.path   || GH_DEFAULTS.path;
-      $('#ghToken').value  = '';
+      const hasTok = !!localStorage.getItem('gh_tok_enc');
+      $('#ghToken').value = '';
+      $('#ghToken').placeholder = hasTok ? '✓ Token guardado en este dispositivo (déjalo vacío)' : 'github_pat_...';
+      $('#ghForget').style.display = hasTok ? '' : 'none';
       $('#ghStatus').textContent = '';
       $('#ghStatus').className = 'small';
       openModal('ghModal');
@@ -801,12 +860,16 @@
   }
 
   async function saveToGitHub() {
-    if (state.ghBusy) return;
+    if (state.ghBusy || !state.admin) return;
     const owner  = $('#ghOwner').value.trim();
     const repo   = $('#ghRepo').value.trim();
     const branch = $('#ghBranch').value.trim() || 'main';
     const path   = $('#ghPath').value.trim() || 'projects.json';
-    const token  = $('#ghToken').value.trim();
+    const typed  = $('#ghToken').value.trim();
+    let token = typed;
+    if (!token && state.pw && localStorage.getItem('gh_tok_enc')) {
+      try { token = await openToken(state.pw, localStorage.getItem('gh_tok_enc')); } catch (e) { /* ignora */ }
+    }
     const msg    = $('#ghMsg').value.trim() || 'Actualizar portafolio desde el panel';
 
     const status = $('#ghStatus');
@@ -824,9 +887,9 @@
     btn.textContent = 'Guardando…';
     setStatus('Conectando con GitHub…', 'work');
 
-    sessionStorage.setItem('gh_session', JSON.stringify({ owner, repo, branch, path }));
+    localStorage.setItem('gh_cfg', JSON.stringify({ owner, repo, branch, path }));
 
-    const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+    const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
     const headers = {
       'Authorization': `Bearer ${token}`,
       'Accept': 'application/vnd.github+json',
@@ -837,7 +900,7 @@
       // 1) Obtener SHA actual (si existe)
       let sha = null;
       setStatus('Leyendo archivo actual…', 'work');
-      const getRes = await fetch(`${apiBase}?ref=${branch}`, { headers });
+      const getRes = await fetch(`${apiBase}?ref=${encodeURIComponent(branch)}`, { headers });
       if (getRes.ok) {
         const meta = await getRes.json();
         sha = meta.sha;
@@ -871,6 +934,9 @@
         throw new Error(`GitHub respondió ${putRes.status}. ${detail}`);
       }
 
+      if (typed && state.pw && $('#ghRemember').checked) {
+        try { localStorage.setItem('gh_tok_enc', await sealToken(state.pw, typed)); } catch (e) { /* ignora */ }
+      }
       const putJson = await putRes.json();
       const commitUrl = putJson.commit?.html_url || '';
       setStatus('✅ Guardado. GitHub Pages publicará los cambios en 1–3 minutos.', 'ok');
@@ -897,6 +963,72 @@
       btn.textContent = '💾 Confirmar guardado';
       $('#ghToken').value = '';
     }
+  }
+
+  /* ---------- Acceso ---------- */
+  async function derive(pw, tag) {
+    const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+    return crypto.subtle.deriveBits({ name: 'PBKDF2', salt: enc.encode(AUTH.salt + ':' + tag), iterations: AUTH.iter, hash: 'SHA-256' }, base, 256);
+  }
+  async function aesKey(pw) { return crypto.subtle.importKey('raw', await derive(pw, 'tok'), 'AES-GCM', false, ['encrypt', 'decrypt']); }
+  async function sealToken(pw, tok) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aesKey(pw), enc.encode(tok));
+    return hex(iv) + ':' + hex(ct);
+  }
+  async function openToken(pw, s) {
+    const [iv, ct] = s.split(':');
+    return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unhex(iv) }, await aesKey(pw), unhex(ct)));
+  }
+  function openLogin() { $('#loginStatus').textContent = ''; openModal('loginModal'); setTimeout(() => $('#loginUser').focus(), 150); }
+  async function doLogin() {
+    const st = $('#loginStatus'), u = $('#loginUser').value.trim(), p = $('#loginPass').value;
+    if (!window.crypto || !crypto.subtle) { st.textContent = '❌ Abre el sitio por https (GitHub Pages) para iniciar sesión.'; st.className = 'small err'; return; }
+    const ok = u === AUTH.user && hex(await derive(p, 'auth')) === AUTH.hash;
+    if (!ok) { st.textContent = '❌ Usuario o contraseña incorrectos.'; st.className = 'small err'; return; }
+    state.admin = true; state.pw = p; $('#loginPass').value = '';
+    closeModal('loginModal');
+    await loadData(); applyAdminUI(); renderAll(); navigate('admin');
+    toast('Sesión iniciada.', 'success');
+  }
+  function logout() {
+    state.admin = false; state.preview = false; state.pw = null;
+    $('#previewBtn').textContent = '👁 Vista pública';
+    loadData().then(() => { applyAdminUI(); renderAll(); navigate('inicio'); });
+  }
+  function applyAdminUI() {
+    const on = state.admin;
+    ['navAdmin', 'adminBtn', 'previewBtn', 'logoutBtn'].forEach(id => { $('#' + id).style.display = on ? '' : 'none'; });
+    $('#loginLink').style.display = on ? 'none' : '';
+  }
+  function applySite() {
+    const s = state.data.site || {};
+    SECS.forEach(([k]) => {
+      const hid = !!s[k + '_hide'], off = hid && !showAll();
+      $$('[data-nav="' + k + '"]').forEach(b => { b.style.display = off ? 'none' : ''; if (b.classList.contains('nav-item')) b.classList.toggle('is-hidden', hid); });
+      const h = $('#section-' + k + ' .h1'), d = $('#section-' + k + ' .section-head .muted');
+      if (h) { h.dataset.def = h.dataset.def || h.textContent; h.textContent = s[k + '_title'] || h.dataset.def; }
+      if (d) { d.dataset.def = d.dataset.def || d.textContent; d.textContent = s[k + '_sub'] || d.dataset.def; }
+    });
+    document.title = s.pageTitle || DEFAULT_TITLE;
+    const ft = $('#footerText'); ft.dataset.def = ft.dataset.def || ft.textContent; ft.textContent = s.footer || ft.dataset.def;
+  }
+  function bindAuth() {
+    $('#loginConfirm').addEventListener('click', doLogin);
+    $('#loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    $('#loginLink').addEventListener('click', e => { e.preventDefault(); openLogin(); });
+    $('#logoutBtn').addEventListener('click', logout);
+    $('#previewBtn').addEventListener('click', () => {
+      state.preview = !state.preview;
+      $('#previewBtn').textContent = state.preview ? '✏️ Volver a editar' : '👁 Vista pública';
+      if (state.preview && state.section === 'admin') navigate('inicio');
+      renderAll();
+    });
+    $('#ghForget').addEventListener('click', () => {
+      localStorage.removeItem('gh_tok_enc'); $('#ghForget').style.display = 'none';
+      $('#ghToken').placeholder = 'github_pat_...'; toast('Token olvidado en este dispositivo.', 'success');
+    });
+    window.addEventListener('hashchange', () => { if (location.hash === '#admin' && !state.admin) openLogin(); });
   }
 
   /* ---------- Bind UI ---------- */
@@ -943,8 +1075,8 @@
   }
 
   function renderAll() {
-    if (state.isDraft) $('#draftBanner').hidden = false;
-    else $('#draftBanner').hidden = true;
+    $('#draftBanner').hidden = !(state.admin && state.isDraft && !state.preview);
+    applySite();
     renderHome();
     renderProjectFilters();
     renderProjects();
@@ -963,7 +1095,10 @@
     bindUI();
     bindGlobalSearch();
     bindAdminIO();
+    bindAuth();
+    applyAdminUI();
     navigate('inicio');
+    if (location.hash === '#admin') openLogin();
     $('#appLoader').style.display = 'none';
   }
 
