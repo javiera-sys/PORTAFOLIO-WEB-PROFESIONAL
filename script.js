@@ -759,7 +759,7 @@
       return `<div class="field${full}">
         <label>${esc(f.label)}${schema.hideable ? ` <span class="hide-toggle"><input type="checkbox" data-hide="${f.key}" ${(value.hide || {})[f.key] ? 'checked' : ''}> ocultar</span>` : ''}</label>
         ${control}
-        ${f.upload ? `<div style="margin-top:6px;"><button type="button" class="btn btn-sm btn-outline" data-upload="${f.upload}">📎 Subir ${f.upload === 'pdf' ? 'PDF' : 'imagen'}${f.type === 'list' ? ' (una o varias)' : ''}</button></div>` : ''}
+        ${f.upload ? `<div style="margin-top:6px;"><button type="button" class="btn btn-sm btn-outline" data-upload="${f.upload}">📎 Subir ${f.upload === 'pdf' ? 'PDF' : 'imagen'}${f.type === 'list' ? ' (una o varias)' : ''}</button>${f.upload === 'image' ? ' <label class="small" style="margin-left:8px;"><input type="checkbox" data-wm checked style="width:auto;"> Marca de agua</label>' : ''}</div>` : ''}
         ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
       </div>`;
     }).join('')}</div>`;
@@ -1038,21 +1038,31 @@
   }
 
   /* ---------- Subida de imágenes y PDF a GitHub ---------- */
-  async function shrinkImage(file, ext) {
+  async function shrinkImage(file, ext, wm) {
     if (!/^(jpe?g|png|webp)$/.test(ext)) return { blob: file, ext };          // gif/svg: tal cual
     try {
       const bmp = await createImageBitmap(file);
       const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
       const c = document.createElement('canvas');
       c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      const ctx = c.getContext('2d');
+      ctx.drawImage(bmp, 0, 0, c.width, c.height);
+      if (wm) {                                                     // marca de agua diagonal repetida
+        const txt = '© ' + ((state.data.profile && state.data.profile.name) || 'Portafolio');
+        const fs = Math.max(16, Math.round(c.width / 28)), reach = c.width + c.height;
+        ctx.save(); ctx.globalAlpha = 0.2; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#000'; ctx.lineWidth = Math.max(1, fs / 18);
+        ctx.font = '600 ' + fs + 'px sans-serif'; ctx.rotate(-Math.PI / 8);
+        const step = ctx.measureText(txt).width + fs * 3;
+        for (let y = -reach; y < reach; y += fs * 5) for (let x = -reach; x < reach; x += step) { ctx.strokeText(txt, x, y); ctx.fillText(txt, x, y); }
+        ctx.restore();
+      }
       const png = ext === 'png';
       const blob = await new Promise(r => c.toBlob(r, png ? 'image/png' : 'image/jpeg', 0.85));
       return { blob, ext: png ? 'png' : 'jpg' };
     } catch (e) { throw new Error('No se pudo procesar la imagen (usa JPG, PNG o WebP).'); }
   }
 
-  async function uploadFile(file, kind) {
+  async function uploadFile(file, kind, wm) {
     if (!state.admin) throw new Error('Inicia sesión.');
     const cfg = JSON.parse(localStorage.getItem('gh_cfg') || '{}');
     const owner = cfg.owner || GH_DEFAULTS.owner, repo = cfg.repo || GH_DEFAULTS.repo, branch = cfg.branch || GH_DEFAULTS.branch;
@@ -1064,7 +1074,7 @@
     let blob = file, ext = (file.name.split('.').pop() || '').toLowerCase();
     if (kind === 'image') {
       if (!file.type.startsWith('image/')) throw new Error('Elige un archivo de imagen.');
-      ({ blob, ext } = await shrinkImage(file, ext));
+      ({ blob, ext } = await shrinkImage(file, ext, wm));
     } else if (ext !== 'pdf') throw new Error('Solo se permiten archivos PDF.');
     if (blob.size > 25 * 1024 * 1024) throw new Error('El archivo supera 25 MB.');
 
@@ -1087,10 +1097,14 @@
   }
 
   function bindUploads() {
+    // Disuasión para visitantes: sin menú contextual ni arrastre sobre imágenes (no es protección real)
+    document.addEventListener('contextmenu', e => { if (!state.admin && e.target.closest && e.target.closest('img')) e.preventDefault(); });
+    document.addEventListener('dragstart', e => { if (!state.admin && e.target.tagName === 'IMG') e.preventDefault(); });
     $('#adminPanel').addEventListener('click', (e) => {
       const btn = e.target.closest('[data-upload]');
       if (!btn) return;
       const kind = btn.dataset.upload;
+      const wm = !!(btn.parentElement.querySelector('[data-wm]') || {}).checked;
       const ctrl = btn.closest('.field').querySelector('[data-field]');
       const multi = ctrl.dataset.type === 'list' || ctrl.dataset.type === 'pairs';
       const input = document.createElement('input');
@@ -1103,7 +1117,7 @@
         for (const file of Array.from(input.files)) {
           try {
             btn.textContent = 'Subiendo ' + file.name + '…';
-            const { path, name } = await uploadFile(file, kind);
+            const { path, name } = await uploadFile(file, kind, wm);
             const line = ctrl.dataset.type === 'pairs' ? name + '|' + path : path;
             ctrl.value = multi ? (ctrl.value.trim() ? ctrl.value.trim() + '\n' : '') + line : line;
             ok++;
