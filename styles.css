@@ -505,3 +505,5 @@ textarea { resize: vertical; min-height: 90px; }
 .hide-toggle{float:right;font-weight:500;font-size:12px;cursor:pointer}
 .hide-toggle input{width:auto;margin-right:4px}
 .nav-item.is-hidden{opacity:.55}
+
+.hero.no-photo{grid-template-columns:1fr}
