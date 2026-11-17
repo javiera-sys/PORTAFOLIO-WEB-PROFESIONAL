@@ -1,9 +1,9 @@
 # Portafolio Profesional Interactivo
 
-Aplicación web estática (HTML5 + CSS3 + JavaScript) para presentar proyectos de
-ingeniería, diseño industrial, CAD/CAM, modelado 3D y tecnología de la madera.
+Web estática (HTML5 + CSS3 + JavaScript) con panel de administración que sube
+los cambios directamente a GitHub mediante tu token personal.
 
-Sin dependencias externas, sin backend, compatible con **GitHub Pages**.
+Sin backend, sin base de datos. Compatible con **GitHub Pages**.
 
 ---
 
