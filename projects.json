@@ -116,22 +116,29 @@
     },
     {
       "id": "p4",
-      "name": "Despiece y armado de mobiliario",
-      "category": "Tecnología de la madera",
-      "description": "Proyecto de mobiliario en madera maciza con técnica de ensamble a cola de milano. Documentación fotográfica del proceso de fabricación.",
+      "name": "CHIMENEA - TV STAND",
+      "category": "Diseño SolidWorks",
+      "description": "Chimenea multipropósito, con adaptabilidad para chimenea eléctrica y entrepaños centrales removibles. ",
       "date": "2022-10",
       "software": [
-        "AutoCAD",
-        "SketchUp"
+        "SolidWorks",
+        "AutoCAD"
       ],
       "images": [
-        "assets/p4-1.jpg",
-        "assets/p4-2.jpg"
+        "assets/261019_X3JLW97526-mwl7txb8.jpg",
+        "assets/261009_5KMMGI11FI-mwl7u1c8.jpg",
+        "assets/261019_8TLDT7Y7O0-mwl7u26z.jpg"
       ],
-      "documents": [],
+      "documents": [
+        {
+          "label": "IFD5821STF93",
+          "url": "documents/IFD5821STF93-mwl7u5jp.pdf"
+        }
+      ],
       "links": [],
       "notes": "Acabado natural con aceite.",
-      "featured": false
+      "featured": false,
+      "hidden": false
     },
     {
       "id": "p5",
