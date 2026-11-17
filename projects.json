@@ -16,7 +16,10 @@
       "Manufactura",
       "Desarrollo web"
     ],
-    "hide": {}
+    "hide": {
+      "photo": true,
+      "cv": true
+    }
   },
   "categories": [
     "Todos",
