@@ -236,8 +236,7 @@
 
     const cvUrl = p.cv || 'documents/cv.pdf';
     $('#btnCv').href = cvUrl;
-    $('#sidebarCv').href = cvUrl;
-    [['photo','.hero-media'],['status','#profileStatus'],['role','#profileRole'],['specialty','#profileSpecialty'],['description','#profileDesc'],['experienceYears','#profileStats'],['specialties','#profileSpecialties'],['cv','#btnCv'],['cv','#sidebarCv']]
+    [['photo','.hero-media'],['status','#profileStatus'],['role','#profileRole'],['specialty','#profileSpecialty'],['description','#profileDesc'],['experienceYears','#profileStats'],['specialties','#profileSpecialties'],['cv','#btnCv']]
       .forEach(([k, sel]) => { $(sel).style.display = ph(p, k) ? 'none' : ''; });
     $('.hero').classList.toggle('no-photo', ph(p, 'photo'));
     const hs = $('#homeSpecialties').closest('.card'); if (hs) hs.style.display = ph(p, 'specialties') ? 'none' : '';
@@ -330,6 +329,15 @@
         </div>
       </div>`).join('');
 
+    const models = (p.models || []).map(m => `
+      <div style="margin-bottom:16px;">
+        <strong>${esc(m.label || 'Modelo 3D')}</strong>
+        <model-viewer src="${esc(m.url)}" alt="${esc(m.label || 'Modelo 3D')}" camera-controls touch-action="pan-y" auto-rotate
+          shadow-intensity="1" exposure="1" loading="lazy" ar ar-modes="webxr scene-viewer quick-look"
+          style="display:block;width:100%;height:360px;margin-top:6px;border-radius:10px;background:var(--surface-2);"></model-viewer>
+        <p class="muted small" style="margin:6px 0 0;">Arrastra para girar · rueda o pellizco para acercar · en celular puedes verlo en realidad aumentada.</p>
+      </div>`).join('');
+
     const links = (p.links || []).map(l => `
       <a class="btn btn-sm btn-outline" href="${esc(l.url)}" target="_blank" rel="noopener">↗ ${esc(l.label || l.url)}</a>`).join(' ');
 
@@ -339,6 +347,7 @@
       <p>${esc(p.description || '—')}</p>
       ${(p.software || []).length ? `<h3>Software utilizado</h3><div class="project-tags">${p.software.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>` : ''}
       ${images ? `<h3>Fotografías</h3>${images}` : ''}
+      ${models ? `<h3>Modelos 3D</h3>${models}` : ''}
       ${docs ? `<h3>Documentos PDF</h3>${docs}` : ''}
       ${links ? `<h3>Enlaces</h3><div class="row-actions">${links}</div>` : ''}
       ${p.notes ? `<h3>Observaciones técnicas</h3><p>${esc(p.notes)}</p>` : ''}
@@ -353,12 +362,39 @@
     openModal('projectModal');
   }
 
+  let pdfTask = 0;
   function openPdf(url, name = 'Documento') {
     $('#pdfTitle').textContent = name;
-    $('#pdfFrame').src = url;
     $('#pdfOpen').href = url;
     $('#pdfDownload').href = url;
+    state.pdfUrl = url; state.pdfZoom = 1;
     openModal('pdfModal');
+    renderPdf();
+  }
+  async function renderPdf() {
+    const box = $('#pdfPages'), id = ++pdfTask;
+    box.innerHTML = '<p class="muted" style="padding:24px;text-align:center;">Cargando documento…</p>';
+    try {
+      if (!window.pdfjsLib) throw new Error('visor no disponible');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjsLib.getDocument(state.pdfUrl).promise;
+      if (id !== pdfTask) return;
+      box.innerHTML = '';
+      const w = Math.max(280, box.clientWidth - 16) * state.pdfZoom, dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      for (let n = 1; n <= pdf.numPages; n++) {
+        const page = await pdf.getPage(n);
+        if (id !== pdfTask) return;
+        const base = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: (w / base.width) * dpr });
+        const c = document.createElement('canvas');
+        c.className = 'pdf-page'; c.width = vp.width; c.height = vp.height;
+        c.style.width = w + 'px'; c.style.height = (vp.height / dpr) + 'px';
+        box.appendChild(c);
+        await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      }
+    } catch (e) {
+      if (id !== pdfTask) return;
+      box.innerHTML = '<div style="padding:28px;text-align:center;"><p>No se pudo mostrar el documento aquí.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="' + esc(state.pdfUrl) + '">Abrir PDF</a></div>';
+    }
   }
 
   function openModal(id) {
@@ -372,7 +408,7 @@
     m.classList.remove('open');
     m.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    if (id === 'pdfModal') setTimeout(() => { $('#pdfFrame').src = 'about:blank'; }, 250);
+    if (id === 'pdfModal') { pdfTask++; setTimeout(() => { $('#pdfPages').innerHTML = ''; }, 250); }
   }
 
   function openLightbox(items, index = 0) {
@@ -630,10 +666,12 @@
   ['projects','gallery','apps','skills','experience'].forEach(k =>
     SCHEMAS[k].fields.push({ key: 'hidden', label: '🚫 Ocultar al público', type: 'checkbox' }));
   SCHEMAS.profile.hideable = SCHEMAS.contact.hideable = true;
+  SCHEMAS.projects.fields.splice(SCHEMAS.projects.fields.findIndex(f => f.key === 'hidden'), 0,
+    { key: 'models', label: 'Modelos 3D .glb (formato: Nombre|ruta.glb, uno por línea)', type: 'pairs', full: true, hint: 'Nombre|models/pieza.glb' });
   const upl = (s, k, t) => { SCHEMAS[s].fields.find(f => f.key === k).upload = t; };
   upl('profile', 'photo', 'image'); upl('profile', 'cv', 'pdf'); upl('contact', 'cv', 'pdf');
   upl('gallery', 'image', 'image'); upl('apps', 'image', 'image');
-  upl('projects', 'images', 'image'); upl('projects', 'documents', 'pdf');
+  upl('projects', 'images', 'image'); upl('projects', 'documents', 'pdf'); upl('projects', 'models', 'glb');
   SCHEMAS.site = {
     label: 'Sitio', singleton: true, dataKey: 'site',
     fields: [
@@ -759,7 +797,7 @@
       return `<div class="field${full}">
         <label>${esc(f.label)}${schema.hideable ? ` <span class="hide-toggle"><input type="checkbox" data-hide="${f.key}" ${(value.hide || {})[f.key] ? 'checked' : ''}> ocultar</span>` : ''}</label>
         ${control}
-        ${f.upload ? `<div style="margin-top:6px;"><button type="button" class="btn btn-sm btn-outline" data-upload="${f.upload}">📎 Subir ${f.upload === 'pdf' ? 'PDF' : 'imagen'}${f.type === 'list' ? ' (una o varias)' : ''}</button>${f.upload === 'image' ? ' <label class="small" style="margin-left:8px;"><input type="checkbox" data-wm checked style="width:auto;"> Marca de agua</label>' : ''}</div>` : ''}
+        ${f.upload ? `<div style="margin-top:6px;"><button type="button" class="btn btn-sm btn-outline" data-upload="${f.upload}">📎 Subir ${f.upload === 'pdf' ? 'PDF' : f.upload === 'glb' ? 'modelo 3D (.glb)' : 'imagen'}${f.type === 'list' ? ' (una o varias)' : ''}</button>${f.upload === 'image' ? ' <label class="small" style="margin-left:8px;"><input type="checkbox" data-wm checked style="width:auto;"> Marca de agua</label>' : ''}</div>` : ''}
         ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
       </div>`;
     }).join('')}</div>`;
@@ -1075,12 +1113,14 @@
     if (kind === 'image') {
       if (!file.type.startsWith('image/')) throw new Error('Elige un archivo de imagen.');
       ({ blob, ext } = await shrinkImage(file, ext, wm));
-    } else if (ext !== 'pdf') throw new Error('Solo se permiten archivos PDF.');
-    if (blob.size > 25 * 1024 * 1024) throw new Error('El archivo supera 25 MB.');
+    } else if (kind === 'glb') { if (ext !== 'glb') throw new Error('Solo se permiten archivos .glb.'); }
+    else if (ext !== 'pdf') throw new Error('Solo se permiten archivos PDF.');
+    const maxMb = kind === 'glb' ? 50 : 25;
+    if (blob.size > maxMb * 1024 * 1024) throw new Error('El archivo supera ' + maxMb + ' MB.');
 
     const base = file.name.replace(/\.[^.]+$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'archivo';
-    const path = (kind === 'pdf' ? 'documents/' : 'assets/') + base + '-' + Date.now().toString(36) + '.' + ext;
+    const path = (kind === 'pdf' ? 'documents/' : kind === 'glb' ? 'models/' : 'assets/') + base + '-' + Date.now().toString(36) + '.' + ext;
     const b64 = await new Promise((res, rej) => {
       const r = new FileReader();
       r.onload = () => res(String(r.result).split(',')[1]);
@@ -1109,7 +1149,7 @@
       const multi = ctrl.dataset.type === 'list' || ctrl.dataset.type === 'pairs';
       const input = document.createElement('input');
       input.type = 'file'; input.multiple = multi;
-      input.accept = kind === 'pdf' ? 'application/pdf,.pdf' : 'image/*';
+      input.accept = kind === 'pdf' ? 'application/pdf,.pdf' : kind === 'glb' ? '.glb,model/gltf-binary' : 'image/*';
       input.onchange = async () => {
         const label = btn.textContent;
         btn.disabled = true;
@@ -1146,13 +1186,17 @@
     });
 
     $$('[data-close-modal]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.closeModal)));
-    $$('.modal').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); }));
+    $$('.modal').forEach(m => m.addEventListener('click', (e) => { if (e.target === m && m.id !== 'ghModal' && m.id !== 'loginModal') closeModal(m.id); }));
 
     $('#pdfFull').addEventListener('click', () => {
-      const f = $('#pdfFrame');
+      const f = $('.pdf-body');
       if (f.requestFullscreen) f.requestFullscreen().catch(() => {});
       else if (f.webkitRequestFullscreen) f.webkitRequestFullscreen();
     });
+
+    const zoomPdf = d => { state.pdfZoom = Math.min(3, Math.max(0.6, (state.pdfZoom || 1) + d)); renderPdf(); };
+    $('#pdfZoomIn').addEventListener('click', () => zoomPdf(0.25));
+    $('#pdfZoomOut').addEventListener('click', () => zoomPdf(-0.25));
 
     $('#lbClose').addEventListener('click', lbClose);
     $('#lbPrev').addEventListener('click', lbPrev);
