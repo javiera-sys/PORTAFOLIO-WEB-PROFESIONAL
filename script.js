@@ -239,6 +239,7 @@
     $('#sidebarCv').href = cvUrl;
     [['photo','.hero-media'],['status','#profileStatus'],['role','#profileRole'],['specialty','#profileSpecialty'],['description','#profileDesc'],['experienceYears','#profileStats'],['specialties','#profileSpecialties'],['cv','#btnCv'],['cv','#sidebarCv']]
       .forEach(([k, sel]) => { $(sel).style.display = ph(p, k) ? 'none' : ''; });
+    $('.hero').classList.toggle('no-photo', ph(p, 'photo'));
     const hs = $('#homeSpecialties').closest('.card'); if (hs) hs.style.display = ph(p, 'specialties') ? 'none' : '';
 
     const stats = [
