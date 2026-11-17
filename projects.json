@@ -165,6 +165,32 @@
       "notes": "Sin dependencias externas.",
       "featured": true,
       "hidden": false
+    },
+    {
+      "id": "id-vxrzm8w",
+      "name": "CAMA TAMAÑO KING",
+      "category": "Diseño de SolidWorks ",
+      "date": "",
+      "featured": false,
+      "description": "Cama con postes solidos de madera y triplay de teca para tableros.",
+      "software": [
+        "SolidWorks",
+        "AutoCAD"
+      ],
+      "images": [
+        "assets/260428_WSPLX1I2T5-mwl8150c.jpg",
+        "assets/260416_NOSEI95T3H-mwl81645.jpg",
+        "assets/260504_A1SC3M7HJS-mwl816yy.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD6731PLTEK",
+          "url": "documents/IFD6731PLTEK-mwl81db3.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "hidden": false
     }
   ],
   "gallery": [
