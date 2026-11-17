@@ -1,27 +1,321 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
-  meta charset, viewport, description, title
-  link styles.css
-  preconnect fonts? Use system fonts to avoid deps... The user wants modern typography. I'll use Google Fonts (Inter) — that's a dependency but acceptable? "Evitar dependencias innecesarias" — fonts are fine, but for offline robustness maybe use system font stack. I'll use Google Fonts with fallback to system stack. Actually GitHub Pages works fine with Google Fonts. I'll include Inter + fallback.
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Portafolio profesional interactivo: ingeniería, diseño industrial, CAD/CAM, modelado 3D y tecnología de la madera.">
+  <meta name="theme-color" content="#0e1f38">
+  <title>Portafolio Profesional | Ingeniería &amp; Diseño</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar" id="sidebar"> ... nav ... </aside>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <main class="main">
-      <header class="topbar">
-        <button menu toggle>
-        <div class="topbar-search"> input buscador general </div>
-        <div class="topbar-actions"> theme toggle? admin btn </div>
-      </header>
-      <div class="content" id="content">
-        <section id="section-inicio" class="section">...</section>
-        ...
-      </div>
-      <footer>
-    </main>
+
+  <!-- ===================== LOADER GLOBAL ===================== -->
+  <div class="app-loader" id="appLoader">
+    <div class="spinner"></div>
+    <p>Cargando portafolio…</p>
   </div>
-  modals: projectModal, lightbox, pdfModal, adminModal
-  script.js
+
+  <div class="app" id="app">
+
+    <!-- ===================== MENÚ LATERAL ===================== -->
+    <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+      <div class="brand">
+        <div class="brand-logo" id="brandLogo">PN</div>
+        <div class="brand-text">
+          <strong id="brandName">Portafolio</strong>
+          <span id="brandRole">Ingeniería &amp; Diseño</span>
+        </div>
+      </div>
+
+      <nav class="nav" id="mainNav">
+        <button class="nav-item" data-nav="inicio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+          <span>Inicio</span>
+        </button>
+        <button class="nav-item" data-nav="proyectos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h5l2 2h11v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M3 7V5a1 1 0 0 1 1-1h4l2 2"/></svg>
+          <span>Proyectos</span>
+        </button>
+        <button class="nav-item" data-nav="galeria">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m3 17 5-5 4 4 3-3 6 6"/></svg>
+          <span>Galería</span>
+        </button>
+        <button class="nav-item" data-nav="aplicaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span>Aplicaciones</span>
+        </button>
+        <button class="nav-item" data-nav="habilidades">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+          <span>Habilidades</span>
+        </button>
+        <button class="nav-item" data-nav="experiencia">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
+          <span>Experiencia</span>
+        </button>
+        <button class="nav-item" data-nav="contacto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          <span>Contacto</span>
+        </button>
+        <button class="nav-item" data-nav="admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"/></svg>
+          <span>Administración</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a class="btn btn-ghost btn-block" id="sidebarCv" href="#" download>⬇ Descargar CV</a>
+        <p class="sidebar-note">© <span id="year"></span> · Portafolio profesional</p>
+      </div>
+    </aside>
+
+    <div class="overlay" id="overlay" hidden></div>
+
+    <!-- ===================== CONTENIDO ===================== -->
+    <div class="main">
+
+      <!-- Barra superior -->
+      <header class="topbar">
+        <button class="icon-btn" id="menuBtn" aria-label="Abrir menú" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="globalSearch" class="input search-input" type="search"
+                 placeholder="Buscar proyectos, aplicaciones, habilidades…"
+                 autocomplete="off" aria-label="Buscador general">
+          <div class="search-results" id="searchResults" hidden></div>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="icon-btn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          </button>
+          <button class="btn btn-primary btn-sm" id="adminBtn">Admin</button>
+        </div>
+      </header>
+
+      <!-- Banner de borrador local -->
+      <div class="banner" id="draftBanner" hidden>
+        <span>⚠ Estás viendo un <strong>borrador local</strong> guardado en este navegador. No es visible para los visitantes.</span>
+        <button class="btn btn-sm btn-outline" id="discardDraft">Descartar borrador</button>
+      </div>
+
+      <main class="content" id="content">
+
+        <!-- ==================== A. INICIO ==================== -->
+        <section class="section" id="section-inicio">
+          <div class="card hero">
+            <div class="hero-media">
+              <img id="profilePhoto" alt="Fotografía de perfil" loading="lazy">
+            </div>
+            <div class="hero-body">
+              <span class="pill" id="profileStatus">Disponible</span>
+              <h1 id="profileName">—</h1>
+              <p class="hero-role" id="profileRole">—</p>
+              <p class="hero-specialty" id="profileSpecialty">—</p>
+              <p class="hero-desc" id="profileDesc">—</p>
+
+              <div class="hero-stats" id="profileStats"></div>
+              <div class="chips" id="profileSpecialties"></div>
+
+              <div class="hero-actions">
+                <a class="btn btn-primary" id="btnCv" href="#" download>⬇ Descargar CV (PDF)</a>
+                <button class="btn btn-outline" data-nav="proyectos">Explorar proyectos</button>
+                <button class="btn btn-ghost" data-nav="contacto">Contacto</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card pad">
+              <h2 class="h2">Especialidades principales</h2>
+              <div class="mini-list" id="homeSpecialties"></div>
+            </div>
+            <div class="card pad">
+              <h2 class="h2">Proyectos destacados</h2>
+              <div class="mini-list" id="homeFeatured"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== B. PROYECTOS ==================== -->
+        <section class="section" id="section-proyectos">
+          <div class="section-head">
+            <div>
+              <h1 class="h1">Proyectos y evidencias</h1>
+              <p class="muted">Planos técnicos, modelado 3D, CAD/CAM y documentación de fabricación.</p>
+            </div>
+            <span class="counter" id="projectsCount"></span>
+          </div>
+
+          <div class="toolbar">
+            <div class="filters" id="projectFilters"></div>
+            <input id="projectSearch" class="input" type="search"
+                   placeholder="Buscar por nombre, software o descripción…" aria-label="Buscar proyectos">
+          </div>
+
+          <div class="grid-cards" id="projectGrid"></div>
+          <div class="empty" id="projectsEmpty" hidden>
+            <h3>Sin resultados</h3>
+            <p class="muted">No hay proyectos que coincidan con la búsqueda o el filtro seleccionado.</p>
+          </div>
+        </section>
+
+        <!-- ==================== D. GALERÍA ==================== -->
+        <section class="section" id="section-galeria">
+          <div class="section-head">
+            <div>
+              <h1 class="h1">Galería fotográfica</h1>
+              <p class="muted">Modelos, procesos de fabricación, maquinaria y productos terminados.</p>
+            </div>
+            <span class="counter" id="galleryCount"></span>
+          </div>
+
+          <div class="toolbar">
+            <div class="filters" id="galleryFilters"></div>
+          </div>
+
+          <div class="gallery-grid" id="galleryGrid"></div>
+          <div class="empty" id="galleryEmpty" hidden>
+            <h3>Sin imágenes</h3>
+            <p class="muted">No hay fotografías en esta categoría.</p>
+          </div>
+        </section>
+
+        <!-- ==================== E. APLICACIONES ==================== -->
+        <section class="section" id="section-aplicaciones">
+          <div class="section-head">
+            <div>
+              <h1 class="h1">Aplicaciones desarrolladas</h1>
+              <p class="muted">Herramientas digitales propias, con acceso directo y repositorio.</p>
+            </div>
+          </div>
+          <div class="grid-cards" id="appsGrid"></div>
+        </section>
+
+        <!-- ==================== F. HABILIDADES ==================== -->
+        <section class="section" id="section-habilidades">
+          <div class="section-head">
+            <div>
+              <h1 class="h1">Habilidades técnicas</h1>
+              <p class="muted">Competencias profesionales por área. Niveles configurables desde el panel de administración.</p>
+            </div>
+          </div>
+          <div class="skills-grid" id="skillsGrid"></div>
+        </section>
+
+        <!-- ==================== G. EXPERIENCIA ==================== -->
+        <section class="section" id="section-experiencia">
+          <div class="section-head">
+            <div>
+              <h1 class="h1">Experiencia profesional</h1>
+              <p class="muted">Trayectoria, responsabilidades y logros destacados.</p>
+            </div>
+          </div>
+          <div class="timeline" id="timeline"></div>
+        </section>
+
+        <!-- ==================== H. CONTACTO ==================== -->
+        <section class="section" id="section-contacto">
+          <div class="section-head">
+            <div>
+              <h1 class="h1">Contacto</h1>
+              <p class="muted">Disponible para proyectos de diseño, ingeniería y desarrollo.</p>
+            </div>
+          </div>
+          <div class="contact-grid" id="contactGrid"></div>
+        </section>
+
+        <!-- ==================== PANEL DE ADMINISTRACIÓN ==================== -->
+        <section class="section" id="section-admin">
+          <div class="section-head">
+            <div>
+              <h1 class="h1">Panel de administración</h1>
+              <p class="muted">Edita el contenido y exporta <code>projects.json</code> para publicarlo en GitHub.</p>
+            </div>
+            <div class="head-actions">
+              <button class="btn btn-primary btn-sm" id="btnExport">⬇ Exportar projects.json</button>
+              <button class="btn btn-outline btn-sm" id="btnImport">⬆ Importar JSON</button>
+              <input type="file" id="importFile" accept="application/json,.json" hidden>
+            </div>
+          </div>
+
+          <div class="notice">
+            <strong>Cómo funciona la publicación:</strong> los cambios que hagas aquí se guardan como
+            <em>borrador local</em> en este navegador (útil para previsualizar). Para que los vean todos los
+            visitantes, pulsa <strong>Exportar projects.json</strong>, reemplaza el archivo del repositorio y sube
+            también las imágenes a <code>assets/</code> y los PDF a <code>documents/</code>. Después haz
+            <em>commit</em> y <em>push</em>. GitHub Pages no permite guardar archivos desde el navegador.
+          </div>
+
+          <div class="tabs" id="adminTabs"></div>
+          <div class="admin-panel" id="adminPanel"></div>
+        </section>
+
+      </main>
+
+      <footer class="footer">
+        <p class="muted small">Portafolio profesional · HTML5 · CSS3 · JavaScript · Publicado en GitHub Pages</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: DETALLE DE PROYECTO ===================== -->
+  <div class="modal" id="projectModal" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+      <div class="modal-head">
+        <h2 id="pmTitle">Proyecto</h2>
+        <button class="icon-btn" data-close-modal="projectModal" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body" id="pmBody"></div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: VISOR PDF ===================== -->
+  <div class="modal" id="pdfModal" aria-hidden="true">
+    <div class="modal-dialog pdf-dialog" id="pdfDialog" role="dialog" aria-modal="true" aria-labelledby="pdfTitle">
+      <div class="modal-head">
+        <h2 id="pdfTitle">Documento</h2>
+        <div class="row-actions">
+          <button class="btn btn-sm btn-outline" id="pdfFull">⛶ Pantalla completa</button>
+          <a class="btn btn-sm btn-outline" id="pdfOpen" target="_blank" rel="noopener">↗ Abrir en pestaña</a>
+          <a class="btn btn-sm btn-primary" id="pdfDownload" download>⬇ Descargar</a>
+          <button class="icon-btn" data-close-modal="pdfModal" aria-label="Cerrar">✕</button>
+        </div>
+      </div>
+      <div class="pdf-body">
+        <iframe id="pdfFrame" title="Visor de documentos PDF"></iframe>
+      </div>
+      <p class="pdf-hint muted small">
+        El documento se muestra en su calidad original. Usa la barra del visor para acercar, alejar y cambiar de página.
+      </p>
+    </div>
+  </div>
+
+  <!-- ===================== LIGHTBOX ===================== -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-close" id="lbClose" aria-label="Cerrar">✕</button>
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="Anterior">‹</button>
+    <figure class="lb-figure">
+      <img id="lbImg" alt="">
+      <figcaption>
+        <strong id="lbTitle"></strong>
+        <span id="lbDesc"></span>
+        <span class="lb-count" id="lbCount"></span>
+      </figcaption>
+    </figure>
+    <button class="lb-nav lb-next" id="lbNext" aria-label="Siguiente">›</button>
+  </div>
+
+  <!-- ===================== NOTIFICACIONES ===================== -->
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="script.js"></script>
 </body>
+</html>
