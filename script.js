@@ -1,0 +1,838 @@
+/* =========================================================
+   PORTAFOLIO PROFESIONAL — script.js
+   ========================================================= */
+(() => {
+  'use strict';
+
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const uid = () => 'id-' + Math.random().toString(36).slice(2, 9);
+  const DRAFT_KEY = 'portfolio_draft_v1';
+  const THEME_KEY = 'portfolio_theme';
+
+  function toast(msg, type = '') {
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.textContent = msg;
+    $('#toasts').appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 3200);
+  }
+
+  const PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect fill="#1e3a5f" width="400" height="300"/><text x="200" y="155" fill="#7d9bc0" font-family="sans-serif" font-size="14" text-anchor="middle">Imagen</text></svg>`
+  );
+  const PLACEHOLDER_SQ = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#1e3a5f" width="200" height="200"/><text x="100" y="105" fill="#7d9bc0" font-family="sans-serif" font-size="12" text-anchor="middle">Foto</text></svg>`
+  );
+
+  const FALLBACK = {
+    profile: {
+      name: 'Tu Nombre Completo',
+      role: 'Ingeniero en Diseño Industrial',
+      specialty: 'CAD/CAM · Modelado 3D · Tecnología de la Madera',
+      description: 'Especialista en diseño de producto, ingeniería de fabricación y desarrollo de soluciones técnicas con enfoque en eficiencia y precisión.',
+      photo: 'assets/profile.jpg',
+      status: 'Disponible para proyectos',
+      cv: 'documents/cv.pdf',
+      experienceYears: 8,
+      specialties: ['Diseño CAD/CAM', 'Modelado 3D', 'Planos técnicos', 'Tecnología de la madera', 'Manufactura', 'Desarrollo web']
+    },
+    categories: ['Todos', 'Diseño CAD', 'Diseño CAM', 'Modelado 3D', 'Tecnología de la madera', 'Desarrollo web', 'Ingeniería'],
+    projects: [
+      {
+        id: 'p1', name: 'Mesa de ensamble modular',
+        category: 'Diseño CAD',
+        description: 'Diseño paramétrico de mesa modular con ensambles sin herrajes, orientada a producción en serie.',
+        date: '2024-08', software: ['SolidWorks', 'AutoCAD', 'KeyShot'],
+        images: ['assets/p1-1.jpg', 'assets/p1-2.jpg'],
+        documents: [{ label: 'Plano de despiece', url: 'documents/p1-planos.pdf' }, { label: 'Memoria técnica', url: 'documents/p1-memoria.pdf' }],
+        links: [{ label: 'Ver en Behance', url: 'https://www.behance.net/' }],
+        notes: 'Optimizado para corte CNC. Tolerancias ±0.5 mm.', featured: true
+      },
+      {
+        id: 'p2', name: 'Prototipo de silla ergonómica',
+        category: 'Modelado 3D',
+        description: 'Modelado y render fotorrealista de silla ergonómica. Estudio antropométrico y superficies clase A.',
+        date: '2023-11', software: ['Rhino', 'Blender', 'KeyShot'],
+        images: ['assets/p2-1.jpg'],
+        documents: [{ label: 'Ficha técnica', url: 'documents/p2-ficha.pdf' }],
+        links: [], notes: 'Render final a 4K para catálogo comercial.', featured: true
+      },
+      {
+        id: 'p3', name: 'Mecanizado de pieza estructural',
+        category: 'Diseño CAM',
+        description: 'Programación CAM y simulación de mecanizado 3 ejes para pieza estructural.',
+        date: '2023-05', software: ['Mastercam', 'Fusion 360'],
+        images: ['assets/p3-1.jpg'],
+        documents: [{ label: 'Programa CAM (PDF)', url: 'documents/p3-cam.pdf' }],
+        links: [], notes: 'Reducción de tiempo de ciclo del 18%.', featured: false
+      },
+      {
+        id: 'p4', name: 'Despiece y armado de mobiliario',
+        category: 'Tecnología de la madera',
+        description: 'Proyecto de mobiliario en madera maciza con ensamble a cola de milano.',
+        date: '2022-10', software: ['AutoCAD', 'SketchUp'],
+        images: ['assets/p4-1.jpg', 'assets/p4-2.jpg'],
+        documents: [], links: [], notes: 'Acabado natural con aceite.', featured: false
+      },
+      {
+        id: 'p5', name: 'Calculadora de despiece',
+        category: 'Desarrollo web',
+        description: 'Herramienta web para cálculo de despiece y optimización de corte.',
+        date: '2024-02', software: ['HTML5', 'CSS3', 'JavaScript'],
+        images: ['assets/p5-1.jpg'],
+        documents: [], links: [{ label: 'Abrir demo', url: 'https://github.com/' }],
+        notes: 'Sin dependencias externas.', featured: true
+      }
+    ],
+    gallery: [
+      { id: 'g1', title: 'Ensamble a cola de milano', description: 'Proceso artesanal en madera maciza.', category: 'Tecnología de la madera', image: 'assets/g1.jpg' },
+      { id: 'g2', title: 'Render final de silla', description: 'Render fotorrealista en KeyShot.', category: 'Modelado 3D', image: 'assets/g2.jpg' },
+      { id: 'g3', title: 'Taller de mecanizado', description: 'Centro de mecanizado CNC de 3 ejes.', category: 'Maquinaria', image: 'assets/g3.jpg' },
+      { id: 'g4', title: 'Pieza terminada', description: 'Componente estructural finalizado.', category: 'Productos terminados', image: 'assets/g4.jpg' },
+      { id: 'g5', title: 'Plano de explosión', description: 'Vista explosionada del ensamble.', category: 'Diseño CAD', image: 'assets/g5.jpg' },
+      { id: 'g6', title: 'Proceso de lijado', description: 'Acabado manual de superficie.', category: 'Procesos de fabricación', image: 'assets/g6.jpg' }
+    ],
+    apps: [
+      {
+        id: 'a1', name: 'Calculadora de despiece',
+        description: 'Herramienta para optimizar el corte de tableros y calcular materiales.',
+        image: 'assets/app1.jpg',
+        technologies: ['HTML5', 'CSS3', 'JavaScript'],
+        functionality: 'Calcula cantidad de piezas, área total y desperdicio estimado.',
+        url: 'https://github.com/', repo: 'https://github.com/'
+      }
+    ],
+    skills: [
+      { id: 's1', name: 'SolidWorks', category: 'Diseño CAD', level: 90, description: 'Modelado paramétrico, ensambles y planos.' },
+      { id: 's2', name: 'AutoCAD', category: 'Diseño CAD', level: 88, description: 'Planos técnicos 2D y documentación.' },
+      { id: 's3', name: 'Mastercam', category: 'Diseño CAM', level: 80, description: 'Programación y simulación de mecanizado.' },
+      { id: 's4', name: 'Blender', category: 'Modelado 3D', level: 85, description: 'Modelado, renderizado y animación.' },
+      { id: 's5', name: 'Tecnología de la madera', category: 'Tecnología de la madera', level: 92, description: 'Ensamble, corte y acabado profesional.' },
+      { id: 's6', name: 'Desarrollo web', category: 'Desarrollo de aplicaciones', level: 78, description: 'HTML5, CSS3, JavaScript y Git.' }
+    ],
+    experience: [
+      {
+        id: 'e1', company: 'Empresa Ejemplo S.A.', position: 'Diseñador Industrial',
+        period: '2021 — Actualidad',
+        activities: ['Diseño de producto y planos técnicos.', 'Coordinación con producción.'],
+        achievements: ['Reducción de costos del 12%.', 'Implementación de biblioteca CAD.']
+      },
+      {
+        id: 'e2', company: 'Taller Técnico Ejemplo', position: 'Técnico en CAD/CAM',
+        period: '2018 — 2021',
+        activities: ['Programación CAM.', 'Verificación de piezas.'],
+        achievements: ['Optimización de tiempos de ciclo en 15%.']
+      }
+    ],
+    contact: {
+      email: 'tucorreo@ejemplo.com',
+      linkedin: 'https://www.linkedin.com/',
+      github: 'https://github.com/',
+      phone: '+00 000 000 000',
+      cv: 'documents/cv.pdf'
+    }
+  };
+
+  const state = {
+    data: null,
+    section: 'inicio',
+    isDraft: false,
+    adminTab: 'profile',
+    projectFilter: 'Todos',
+    projectQuery: '',
+    galleryFilter: 'Todas',
+    lightbox: { items: [], index: 0 }
+  };
+
+  async function loadData() {
+    const draft = localStorage.getItem(DRAFT_KEY);
+    if (draft) {
+      try { state.data = JSON.parse(draft); state.isDraft = true; return; } catch (e) { /* ignora */ }
+    }
+    try {
+      const res = await fetch('projects.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      state.data = await res.json();
+    } catch (e) {
+      state.data = JSON.parse(JSON.stringify(FALLBACK));
+    }
+  }
+
+  function saveDraft() {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state.data)); state.isDraft = true; $('#draftBanner').hidden = false; }
+    catch (e) { toast('No se pudo guardar el borrador local.', 'error'); }
+  }
+
+  function clearDraft() {
+    localStorage.removeItem(DRAFT_KEY);
+    state.isDraft = false;
+    $('#draftBanner').hidden = true;
+    toast('Borrador local descartado.', 'success');
+    loadData().then(() => { renderAll(); });
+  }
+
+  function navigate(section) {
+    state.section = section;
+    $$('.section').forEach(el => el.classList.remove('active'));
+    const target = $('#section-' + section);
+    if (target) target.classList.add('active');
+    $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.nav === section));
+    closeSidebar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (section === 'admin') renderAdmin();
+  }
+
+  function openSidebar() { $('#sidebar').classList.add('open'); $('#overlay').hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true'); }
+  function closeSidebar() { $('#sidebar').classList.remove('open'); $('#overlay').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); }
+
+  function renderHome() {
+    const p = state.data.profile || {};
+    const img = $('#profilePhoto');
+    img.src = p.photo || PLACEHOLDER_SQ;
+    img.onerror = () => { img.src = PLACEHOLDER_SQ; };
+    $('#profileName').textContent = p.name || 'Sin nombre';
+    $('#profileRole').textContent = p.role || '';
+    $('#profileSpecialty').textContent = p.specialty || '';
+    $('#profileDesc').textContent = p.description || '';
+    $('#profileStatus').textContent = p.status || 'Disponible';
+    $('#brandName').textContent = (p.name || 'Portafolio').split(' ')[0] || 'Portafolio';
+    $('#brandRole').textContent = p.role || '';
+    $('#brandLogo').textContent = (p.name || 'PN').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+    const cvUrl = p.cv || 'documents/cv.pdf';
+    $('#btnCv').href = cvUrl;
+    $('#sidebarCv').href = cvUrl;
+
+    const stats = [
+      { n: p.experienceYears || 0, l: 'Años de experiencia' },
+      { n: (state.data.projects || []).length, l: 'Proyectos' },
+      { n: (state.data.apps || []).length, l: 'Aplicaciones' },
+      { n: (state.data.skills || []).length, l: 'Habilidades' }
+    ];
+    $('#profileStats').innerHTML = stats.map(s => `<div class="stat"><strong>${esc(s.n)}</strong><span>${esc(s.l)}</span></div>`).join('');
+    $('#profileSpecialties').innerHTML = (p.specialties || []).map(s => `<span class="chip">${esc(s)}</span>`).join('');
+    $('#homeSpecialties').innerHTML = (p.specialties || []).slice(0, 6).map(s => `
+      <div class="mini-item"><span class="dot"></span><span>${esc(s)}</span></div>`).join('') || '<p class="muted small">Sin especialidades configuradas.</p>';
+
+    const featured = (state.data.projects || []).filter(pr => pr.featured).slice(0, 5);
+    $('#homeFeatured').innerHTML = featured.length
+      ? featured.map(pr => `<div class="mini-item"><span class="dot"></span><span>${esc(pr.name)}</span><span class="meta">${esc(pr.category || '')}</span></div>`).join('')
+      : '<p class="muted small">Marca proyectos como "destacado" desde el panel.</p>';
+  }
+
+  function renderProjectFilters() {
+    const cats = ['Todos', ...new Set((state.data.projects || []).map(p => p.category).filter(Boolean))];
+    $('#projectFilters').innerHTML = cats.map(c =>
+      `<button class="filter-chip ${state.projectFilter === c ? 'active' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`
+    ).join('');
+    $$('#projectFilters .filter-chip').forEach(b => b.addEventListener('click', () => {
+      state.projectFilter = b.dataset.cat; renderProjectFilters(); renderProjects();
+    }));
+  }
+
+  function filteredProjects() {
+    const q = state.projectQuery.trim().toLowerCase();
+    return (state.data.projects || []).filter(p => {
+      const catOK = state.projectFilter === 'Todos' || p.category === state.projectFilter;
+      if (!catOK) return false;
+      if (!q) return true;
+      const hay = [p.name, p.description, p.category, p.notes, ...(p.software || [])].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  function renderProjects() {
+    const grid = $('#projectGrid');
+    const items = filteredProjects();
+    $('#projectsCount').textContent = items.length + ' proyecto' + (items.length === 1 ? '' : 's');
+    $('#projectsEmpty').hidden = items.length !== 0;
+
+    grid.innerHTML = items.map(p => `
+      <article class="project-card" data-id="${esc(p.id)}">
+        <div class="project-thumb">
+          <img src="${esc(p.images?.[0] || PLACEHOLDER)}" alt="${esc(p.name)}" loading="lazy"
+               onerror="this.src='${PLACEHOLDER}'">
+        </div>
+        <div class="project-body">
+          <span class="project-cat">${esc(p.category || 'Sin categoría')}</span>
+          <h3 class="project-title">${esc(p.name)}</h3>
+          <p class="project-desc">${esc(p.description || '')}</p>
+          <div class="project-tags">${(p.software || []).slice(0, 4).map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>
+          <div class="project-foot">
+            <span>${esc(p.date || '')}</span>
+            <span>${(p.documents || []).length} doc · ${(p.images || []).length} foto</span>
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    $$('#projectGrid .project-card').forEach(card => {
+      card.addEventListener('click', () => openProjectModal(card.dataset.id));
+    });
+  }
+
+  function openProjectModal(id) {
+    const p = (state.data.projects || []).find(x => x.id === id);
+    if (!p) return;
+    $('#pmTitle').textContent = p.name;
+    const images = (p.images || []).map((src, i) => `
+      <img src="${esc(src)}" alt="${esc(p.name)} ${i + 1}" loading="lazy"
+           style="width:100%;border-radius:10px;cursor:zoom-in;margin-bottom:8px;"
+           data-lightbox-src="${esc(src)}" data-lightbox-title="${esc(p.name)}"
+           onerror="this.src='${PLACEHOLDER}'">`).join('');
+
+    const docs = (p.documents || []).map(d => `
+      <div class="admin-item" style="margin-bottom:6px;">
+        <div><strong>${esc(d.label || 'Documento')}</strong></div>
+        <div class="row-actions">
+          <button class="btn btn-sm btn-outline" data-pdf="${esc(d.url)}" data-pdf-name="${esc(d.label || 'Documento')}">Ver PDF</button>
+          <a class="btn btn-sm btn-ghost" href="${esc(d.url)}" download>⬇</a>
+        </div>
+      </div>`).join('');
+
+    const links = (p.links || []).map(l => `
+      <a class="btn btn-sm btn-outline" href="${esc(l.url)}" target="_blank" rel="noopener">↗ ${esc(l.label || l.url)}</a>`).join(' ');
+
+    $('#pmBody').innerHTML = `
+      <p><strong>Categoría:</strong> ${esc(p.category || '—')} &nbsp;·&nbsp; <strong>Fecha:</strong> ${esc(p.date || '—')}</p>
+      <h3>Descripción</h3>
+      <p>${esc(p.description || '—')}</p>
+      ${(p.software || []).length ? `<h3>Software utilizado</h3><div class="project-tags">${p.software.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>` : ''}
+      ${images ? `<h3>Fotografías</h3>${images}` : ''}
+      ${docs ? `<h3>Documentos PDF</h3>${docs}` : ''}
+      ${links ? `<h3>Enlaces</h3><div class="row-actions">${links}</div>` : ''}
+      ${p.notes ? `<h3>Observaciones técnicas</h3><p>${esc(p.notes)}</p>` : ''}
+    `;
+
+    $$('#pmBody [data-pdf]').forEach(b => b.addEventListener('click', () => openPdf(b.dataset.pdf, b.dataset.pdfName)));
+    $$('#pmBody [data-lightbox-src]').forEach(img => img.addEventListener('click', () => {
+      const items = (p.images || []).map(s => ({ image: s, title: p.name, description: p.category || '' }));
+      openLightbox(items, (p.images || []).indexOf(img.dataset.lightboxSrc));
+    }));
+
+    openModal('projectModal');
+  }
+
+  function openPdf(url, name = 'Documento') {
+    $('#pdfTitle').textContent = name;
+    $('#pdfFrame').src = url;
+    $('#pdfOpen').href = url;
+    $('#pdfDownload').href = url;
+    openModal('pdfModal');
+  }
+
+  function openModal(id) {
+    const m = $('#' + id);
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(id) {
+    const m = $('#' + id);
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (id === 'pdfModal') setTimeout(() => { $('#pdfFrame').src = 'about:blank'; }, 250);
+  }
+
+  function openLightbox(items, index = 0) {
+    if (!items.length) return;
+    state.lightbox = { items, index };
+    $('#lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    updateLightbox();
+  }
+  function updateLightbox() {
+    const { items, index } = state.lightbox;
+    const it = items[index];
+    if (!it) return;
+    const img = $('#lbImg');
+    img.src = it.image || PLACEHOLDER;
+    img.onerror = () => { img.src = PLACEHOLDER; };
+    img.alt = it.title || '';
+    $('#lbTitle').textContent = it.title || '';
+    $('#lbDesc').textContent = it.description || '';
+    $('#lbCount').textContent = `${index + 1} / ${items.length}`;
+  }
+  function lbPrev() { const { items, index } = state.lightbox; state.lightbox.index = (index - 1 + items.length) % items.length; updateLightbox(); }
+  function lbNext() { const { items, index } = state.lightbox; state.lightbox.index = (index + 1) % items.length; updateLightbox(); }
+  function lbClose() { $('#lightbox').classList.remove('open'); document.body.style.overflow = ''; }
+
+  function renderGallery() {
+    const cats = ['Todas', ...new Set((state.data.gallery || []).map(g => g.category).filter(Boolean))];
+    $('#galleryFilters').innerHTML = cats.map(c =>
+      `<button class="filter-chip ${state.galleryFilter === c ? 'active' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`
+    ).join('');
+    $$('#galleryFilters .filter-chip').forEach(b => b.addEventListener('click', () => {
+      state.galleryFilter = b.dataset.cat; renderGallery();
+    }));
+
+    const items = (state.data.gallery || []).filter(g => state.galleryFilter === 'Todas' || g.category === state.galleryFilter);
+    $('#galleryCount').textContent = items.length + ' imagen' + (items.length === 1 ? '' : 'es');
+    $('#galleryEmpty').hidden = items.length !== 0;
+
+    $('#galleryGrid').innerHTML = items.map((g, i) => `
+      <div class="gallery-tile" data-idx="${i}">
+        <img src="${esc(g.image || PLACEHOLDER_SQ)}" alt="${esc(g.title)}" loading="lazy"
+             onerror="this.src='${PLACEHOLDER_SQ}'">
+        <div class="overlay-txt">${esc(g.title)}</div>
+      </div>
+    `).join('');
+
+    $$('#galleryGrid .gallery-tile').forEach(t => {
+      t.addEventListener('click', () => {
+        const lbItems = items.map(g => ({ image: g.image, title: g.title, description: g.description }));
+        openLightbox(lbItems, +t.dataset.idx);
+      });
+    });
+  }
+
+  function renderApps() {
+    const apps = state.data.apps || [];
+    $('#appsGrid').innerHTML = apps.map(a => `
+      <article class="project-card" style="cursor:default;">
+        <div class="project-thumb">
+          <img src="${esc(a.image || PLACEHOLDER)}" alt="${esc(a.name)}" loading="lazy"
+               onerror="this.src='${PLACEHOLDER}'">
+        </div>
+        <div class="project-body">
+          <h3 class="project-title">${esc(a.name)}</h3>
+          <p class="project-desc">${esc(a.description || '')}</p>
+          <div class="project-tags">${(a.technologies || []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+          ${a.functionality ? `<p class="muted small" style="margin:0;">${esc(a.functionality)}</p>` : ''}
+          <div class="row-actions" style="margin-top:10px;">
+            ${a.url ? `<a class="btn btn-sm btn-primary" href="${esc(a.url)}" target="_blank" rel="noopener">↗ Abrir aplicación</a>` : ''}
+            ${a.repo ? `<a class="btn btn-sm btn-outline" href="${esc(a.repo)}" target="_blank" rel="noopener">⧉ Repositorio</a>` : ''}
+          </div>
+        </div>
+      </article>
+    `).join('') || '<p class="muted">No hay aplicaciones registradas.</p>';
+  }
+
+  function renderSkills() {
+    const skills = state.data.skills || [];
+    $('#skillsGrid').innerHTML = skills.map(s => `
+      <div class="skill-card">
+        <span class="skill-cat">${esc(s.category || '')}</span>
+        <div class="skill-name">${esc(s.name)}</div>
+        <p class="skill-desc">${esc(s.description || '')}</p>
+        <div class="skill-bar"><span style="width:${Math.max(0, Math.min(100, +s.level || 0))}%"></span></div>
+        <div class="skill-level">${esc(s.level || 0)}%</div>
+      </div>
+    `).join('') || '<p class="muted">Sin habilidades registradas.</p>';
+  }
+
+  function renderExperience() {
+    const items = state.data.experience || [];
+    $('#timeline').innerHTML = items.map(e => `
+      <div class="tl-item">
+        <div class="tl-card">
+          <div class="tl-period">${esc(e.period || '')}</div>
+          <div class="tl-role">${esc(e.position || '')}</div>
+          <div class="tl-company">${esc(e.company || '')}</div>
+          ${(e.activities || []).length ? `<ul class="tl-list">${e.activities.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
+          ${(e.achievements || []).length ? `<h3 style="font-size:12px;margin:10px 0 4px;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;">Logros</h3><ul class="tl-list">${e.achievements.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}
+        </div>
+      </div>
+    `).join('') || '<p class="muted">Sin experiencia registrada.</p>';
+  }
+
+  function renderContact() {
+    const c = state.data.contact || {};
+    const cards = [
+      { label: 'Correo', value: c.email, href: c.email ? 'mailto:' + c.email : '', icon: '✉' },
+      { label: 'LinkedIn', value: c.linkedin, href: c.linkedin, icon: 'in' },
+      { label: 'GitHub', value: c.github, href: c.github, icon: '⌥' },
+      { label: 'Teléfono', value: c.phone, href: c.phone ? 'tel:' + c.phone.replace(/\s/g, '') : '', icon: '☎' },
+      { label: 'Currículum', value: 'Descargar PDF', href: c.cv || 'documents/cv.pdf', icon: '⬇', download: true }
+    ].filter(x => x.value);
+    $('#contactGrid').innerHTML = cards.map(card => `
+      <a class="contact-card" href="${esc(card.href)}" ${card.download ? 'download' : 'target="_blank" rel="noopener"'}>
+        <div class="contact-icon">${esc(card.icon)}</div>
+        <div><strong>${esc(card.label)}</strong><span>${esc(card.value)}</span></div>
+      </a>
+    `).join('');
+  }
+
+  function bindGlobalSearch() {
+    const input = $('#globalSearch');
+    const box = $('#searchResults');
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      if (!q) { box.hidden = true; return; }
+      const results = [];
+      (state.data.projects || []).forEach(p => {
+        const hay = [p.name, p.description, p.category, ...(p.software || [])].join(' ').toLowerCase();
+        if (hay.includes(q)) results.push({ type: 'Proyecto', label: p.name, action: () => openProjectModal(p.id) });
+      });
+      (state.data.apps || []).forEach(a => {
+        const hay = [a.name, a.description, ...(a.technologies || [])].join(' ').toLowerCase();
+        if (hay.includes(q)) results.push({ type: 'App', label: a.name, action: () => navigate('aplicaciones') });
+      });
+      (state.data.skills || []).forEach(s => {
+        if ((s.name + ' ' + (s.category || '')).toLowerCase().includes(q))
+          results.push({ type: 'Habilidad', label: s.name, action: () => navigate('habilidades') });
+      });
+      if (!results.length) {
+        box.innerHTML = '<div class="sr-empty">Sin resultados</div>';
+      } else {
+        box.innerHTML = results.slice(0, 12).map((r, i) =>
+          `<div class="sr-item" data-i="${i}"><span class="sr-badge">${esc(r.type)}</span><span>${esc(r.label)}</span></div>`
+        ).join('');
+        $$('.sr-item', box).forEach((el, i) => el.addEventListener('click', () => {
+          results[i].action(); box.hidden = true; input.value = '';
+        }));
+      }
+      box.hidden = false;
+    });
+    input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; }, 180));
+  }
+
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem(THEME_KEY, t);
+  }
+  function initTheme() {
+    const t = localStorage.getItem(THEME_KEY) || 'light';
+    applyTheme(t);
+    $('#themeBtn').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+    });
+  }
+
+  const SCHEMAS = {
+    profile: {
+      label: 'Perfil', singleton: true, dataKey: 'profile',
+      fields: [
+        { key: 'name', label: 'Nombre completo', type: 'text' },
+        { key: 'role', label: 'Profesión', type: 'text' },
+        { key: 'specialty', label: 'Especialidad (subtítulo)', type: 'text' },
+        { key: 'status', label: 'Estado (pill)', type: 'text' },
+        { key: 'experienceYears', label: 'Años de experiencia', type: 'number' },
+        { key: 'photo', label: 'Ruta de la fotografía', type: 'text', hint: 'Ej: assets/profile.jpg' },
+        { key: 'cv', label: 'Ruta del CV PDF', type: 'text', hint: 'Ej: documents/cv.pdf' },
+        { key: 'description', label: 'Descripción profesional', type: 'textarea', full: true },
+        { key: 'specialties', label: 'Especialidades (una por línea)', type: 'list', full: true }
+      ]
+    },
+    projects: {
+      label: 'Proyectos', titleKey: 'name', dataKey: 'projects',
+      fields: [
+        { key: 'name', label: 'Nombre', type: 'text', required: true },
+        { key: 'category', label: 'Categoría', type: 'text' },
+        { key: 'date', label: 'Fecha (YYYY-MM)', type: 'text' },
+        { key: 'featured', label: 'Destacado en inicio', type: 'checkbox' },
+        { key: 'description', label: 'Descripción', type: 'textarea', full: true },
+        { key: 'software', label: 'Software (uno por línea)', type: 'list', full: true },
+        { key: 'images', label: 'Imágenes (una ruta por línea)', type: 'list', full: true, hint: 'Ej: assets/p1-1.jpg' },
+        { key: 'documents', label: 'Documentos PDF (formato: Nombre|ruta.pdf, uno por línea)', type: 'pairs', full: true, hint: 'Nombre|documents/plano.pdf' },
+        { key: 'links', label: 'Enlaces (formato: Etiqueta|https://…, uno por línea)', type: 'pairs', full: true },
+        { key: 'notes', label: 'Observaciones técnicas', type: 'textarea', full: true }
+      ]
+    },
+    gallery: {
+      label: 'Galería', titleKey: 'title', dataKey: 'gallery',
+      fields: [
+        { key: 'title', label: 'Título', type: 'text', required: true },
+        { key: 'category', label: 'Categoría', type: 'text' },
+        { key: 'image', label: 'Ruta de la imagen', type: 'text', full: true, hint: 'Ej: assets/g1.jpg' },
+        { key: 'description', label: 'Descripción', type: 'textarea', full: true }
+      ]
+    },
+    apps: {
+      label: 'Aplicaciones', titleKey: 'name', dataKey: 'apps',
+      fields: [
+        { key: 'name', label: 'Nombre', type: 'text', required: true },
+        { key: 'image', label: 'Portada', type: 'text', hint: 'Ej: assets/app1.jpg' },
+        { key: 'description', label: 'Descripción', type: 'textarea', full: true },
+        { key: 'technologies', label: 'Tecnologías (una por línea)', type: 'list', full: true },
+        { key: 'functionality', label: 'Funcionalidad principal', type: 'textarea', full: true },
+        { key: 'url', label: 'URL de la app', type: 'text' },
+        { key: 'repo', label: 'URL del repositorio', type: 'text' }
+      ]
+    },
+    skills: {
+      label: 'Habilidades', titleKey: 'name', dataKey: 'skills',
+      fields: [
+        { key: 'name', label: 'Nombre', type: 'text', required: true },
+        { key: 'category', label: 'Categoría', type: 'text' },
+        { key: 'level', label: 'Nivel (0–100)', type: 'number' },
+        { key: 'description', label: 'Descripción', type: 'textarea', full: true }
+      ]
+    },
+    experience: {
+      label: 'Experiencia', titleKey: 'position', dataKey: 'experience',
+      fields: [
+        { key: 'position', label: 'Puesto', type: 'text', required: true },
+        { key: 'company', label: 'Empresa', type: 'text' },
+        { key: 'period', label: 'Periodo', type: 'text', hint: 'Ej: 2021 — Actualidad' },
+        { key: 'activities', label: 'Actividades (una por línea)', type: 'list', full: true },
+        { key: 'achievements', label: 'Logros (uno por línea)', type: 'list', full: true }
+      ]
+    },
+    contact: {
+      label: 'Contacto', singleton: true, dataKey: 'contact',
+      fields: [
+        { key: 'email', label: 'Correo electrónico', type: 'text' },
+        { key: 'phone', label: 'Teléfono', type: 'text' },
+        { key: 'linkedin', label: 'URL LinkedIn', type: 'text' },
+        { key: 'github', label: 'URL GitHub', type: 'text' },
+        { key: 'cv', label: 'Ruta del CV PDF', type: 'text' }
+      ]
+    }
+  };
+
+  function renderAdminTabs() {
+    const keys = Object.keys(SCHEMAS);
+    $('#adminTabs').innerHTML = keys.map(k =>
+      `<button class="tab ${state.adminTab === k ? 'active' : ''}" data-tab="${k}">${esc(SCHEMAS[k].label)}</button>`
+    ).join('');
+    $$('#adminTabs .tab').forEach(b => b.addEventListener('click', () => {
+      state.adminTab = b.dataset.tab; renderAdmin();
+    }));
+  }
+
+  function renderAdmin() {
+    renderAdminTabs();
+    const tab = state.adminTab;
+    const schema = SCHEMAS[tab];
+    const panel = $('#adminPanel');
+
+    if (schema.singleton) {
+      const value = state.data[schema.dataKey] || {};
+      panel.innerHTML = `
+        <h2 class="h2">Editar ${esc(schema.label)}</h2>
+        ${buildForm(schema, value)}
+        <div class="form-actions">
+          <button class="btn btn-primary" id="adminSave">💾 Guardar (borrador local)</button>
+        </div>`;
+      bindForm(schema, null, value, true);
+    } else {
+      const items = state.data[schema.dataKey] || [];
+      panel.innerHTML = `
+        <div class="admin-toolbar">
+          <h2 class="h2" style="margin:0;">${esc(schema.label)} (${items.length})</h2>
+          <button class="btn btn-primary btn-sm" id="adminAdd">+ Añadir ${esc(schema.label)}</button>
+        </div>
+        <div class="admin-list">
+          ${items.map(it => `
+            <div class="admin-item">
+              <div>
+                <strong>${esc(it[schema.titleKey] || it.name || it.id)}</strong>
+                ${it.category ? `<div class="muted">${esc(it.category)}</div>` : ''}
+              </div>
+              <div class="row-actions">
+                <button class="btn btn-sm btn-outline" data-edit="${esc(it.id)}">Editar</button>
+                <button class="btn btn-sm btn-danger" data-del="${esc(it.id)}">Eliminar</button>
+              </div>
+            </div>`).join('') || '<p class="muted">No hay elementos todavía.</p>'}
+        </div>
+        <div id="adminFormWrap" style="margin-top:18px;" hidden></div>`;
+
+      const wrap = $('#adminFormWrap');
+      $('#adminAdd').addEventListener('click', () => {
+        wrap.hidden = false;
+        wrap.innerHTML = `<h3 class="h2">Nuevo ${esc(schema.label)}</h3>${buildForm(schema, {})}
+          <div class="form-actions">
+            <button class="btn btn-outline" id="adminCancel">Cancelar</button>
+            <button class="btn btn-primary" id="adminSave">💾 Guardar</button>
+          </div>`;
+        bindForm(schema, null, {}, false, true);
+        $('#adminCancel').addEventListener('click', () => { wrap.hidden = true; wrap.innerHTML = ''; });
+      });
+
+      $$('.admin-item [data-edit]').forEach(b => b.addEventListener('click', () => {
+        const item = items.find(x => x.id === b.dataset.edit);
+        if (!item) return;
+        wrap.hidden = false;
+        wrap.innerHTML = `<h3 class="h2">Editar ${esc(schema.label)}</h3>${buildForm(schema, item)}
+          <div class="form-actions">
+            <button class="btn btn-outline" id="adminCancel">Cancelar</button>
+            <button class="btn btn-primary" id="adminSave">💾 Guardar</button>
+          </div>`;
+        bindForm(schema, item, item, false);
+        $('#adminCancel').addEventListener('click', () => { wrap.hidden = true; wrap.innerHTML = ''; });
+      }));
+
+      $$('.admin-item [data-del]').forEach(b => b.addEventListener('click', () => {
+        if (!confirm('¿Eliminar este elemento?')) return;
+        state.data[schema.dataKey] = items.filter(x => x.id !== b.dataset.del);
+        saveDraft(); renderAdmin(); renderAll();
+        toast('Elemento eliminado.', 'success');
+      }));
+    }
+  }
+
+  function buildForm(schema, value) {
+    return `<div class="form-grid">${schema.fields.map(f => {
+      const v = value[f.key];
+      const full = f.full ? ' full' : '';
+      let control = '';
+      if (f.type === 'textarea') {
+        control = `<textarea data-field="${f.key}" ${f.required ? 'required' : ''}>${esc(v || '')}</textarea>`;
+      } else if (f.type === 'checkbox') {
+        control = `<label style="display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text);">
+          <input type="checkbox" data-field="${f.key}" ${v ? 'checked' : ''} style="width:auto;"> ${esc(f.label)}</label>`;
+      } else if (f.type === 'number') {
+        control = `<input type="number" data-field="${f.key}" value="${esc(v ?? '')}" ${f.required ? 'required' : ''}>`;
+      } else if (f.type === 'list') {
+        const txt = Array.isArray(v) ? v.join('\n') : '';
+        control = `<textarea data-field="${f.key}" data-type="list" ${f.required ? 'required' : ''}>${esc(txt)}</textarea>`;
+      } else if (f.type === 'pairs') {
+        const txt = Array.isArray(v) ? v.map(x => `${x.label || ''}|${x.url || ''}`).join('\n') : '';
+        control = `<textarea data-field="${f.key}" data-type="pairs" ${f.required ? 'required' : ''}>${esc(txt)}</textarea>`;
+      } else {
+        control = `<input type="text" data-field="${f.key}" value="${esc(v ?? '')}" ${f.required ? 'required' : ''}>`;
+      }
+      return `<div class="field${full}">
+        <label>${esc(f.label)}</label>
+        ${control}
+        ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function bindForm(schema, existingItem, currentValue, singleton = false, isNew = false) {
+    const saveBtn = $('#adminSave');
+    if (!saveBtn) return;
+    saveBtn.addEventListener('click', () => {
+      const out = singleton ? { ...currentValue } : { ...(existingItem || { id: uid() }) };
+      $$('#adminPanel [data-field]').forEach(el => {
+        const key = el.dataset.field;
+        const type = el.dataset.type;
+        if (el.type === 'checkbox') out[key] = el.checked;
+        else if (el.type === 'number') out[key] = el.value === '' ? 0 : Number(el.value);
+        else if (type === 'list') out[key] = el.value.split('\n').map(s => s.trim()).filter(Boolean);
+        else if (type === 'pairs') out[key] = el.value.split('\n').map(s => s.trim()).filter(Boolean).map(line => {
+          const [label, url] = line.split('|').map(s => s.trim());
+          return { label: label || '', url: url || label || '' };
+        });
+        else out[key] = el.value;
+      });
+
+      const required = schema.fields.filter(f => f.required);
+      for (const f of required) {
+        if (!out[f.key]) { toast('El campo "' + f.label + '" es obligatorio.', 'error'); return; }
+      }
+
+      if (singleton) {
+        state.data[schema.dataKey] = out;
+      } else {
+        const arr = state.data[schema.dataKey] = state.data[schema.dataKey] || [];
+        const idx = arr.findIndex(x => x.id === out.id);
+        if (idx >= 0) arr[idx] = out; else arr.push(out);
+      }
+
+      saveDraft();
+      renderAll();
+      renderAdmin();
+      toast('Guardado como borrador local. Exporta el JSON para publicar.', 'success');
+    });
+  }
+
+  function bindAdminIO() {
+    $('#btnExport').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state.data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'projects.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 500);
+      toast('projects.json exportado. Reemplázalo en el repositorio y haz commit.', 'success');
+    });
+
+    $('#btnImport').addEventListener('click', () => $('#importFile').click());
+    $('#importFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!data || typeof data !== 'object') throw new Error('Formato inválido');
+          state.data = data;
+          saveDraft();
+          renderAll(); renderAdmin();
+          toast('JSON importado. Revisa el borrador local.', 'success');
+        } catch (err) {
+          toast('Error al importar: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    $('#discardDraft').addEventListener('click', clearDraft);
+  }
+
+  function bindUI() {
+    $$('.nav-item').forEach(b => b.addEventListener('click', () => navigate(b.dataset.nav)));
+    $$('[data-nav]').forEach(b => {
+      if (b.classList.contains('nav-item')) return;
+      b.addEventListener('click', () => navigate(b.dataset.nav));
+    });
+    $('#menuBtn').addEventListener('click', openSidebar);
+    $('#overlay').addEventListener('click', closeSidebar);
+    $('#adminBtn').addEventListener('click', () => navigate('admin'));
+
+    $('#projectSearch').addEventListener('input', (e) => {
+      state.projectQuery = e.target.value; renderProjects();
+    });
+
+    $$('[data-close-modal]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.closeModal)));
+    $$('.modal').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); }));
+
+    $('#pdfFull').addEventListener('click', () => {
+      const f = $('#pdfFrame');
+      if (f.requestFullscreen) f.requestFullscreen().catch(() => {});
+      else if (f.webkitRequestFullscreen) f.webkitRequestFullscreen();
+    });
+
+    $('#lbClose').addEventListener('click', lbClose);
+    $('#lbPrev').addEventListener('click', lbPrev);
+    $('#lbNext').addEventListener('click', lbNext);
+    $('#lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') lbClose(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if ($('#lightbox').classList.contains('open')) lbClose();
+        else if ($('#pdfModal').classList.contains('open')) closeModal('pdfModal');
+        else if ($('#projectModal').classList.contains('open')) closeModal('projectModal');
+      }
+      if ($('#lightbox').classList.contains('open')) {
+        if (e.key === 'ArrowLeft') lbPrev();
+        if (e.key === 'ArrowRight') lbNext();
+      }
+    });
+  }
+
+  function renderAll() {
+    if (state.isDraft) $('#draftBanner').hidden = false;
+    else $('#draftBanner').hidden = true;
+    renderHome();
+    renderProjectFilters();
+    renderProjects();
+    renderGallery();
+    renderApps();
+    renderSkills();
+    renderExperience();
+    renderContact();
+  }
+
+  async function init() {
+    initTheme();
+    $('#year').textContent = new Date().getFullYear();
+    await loadData();
+    renderAll();
+    bindUI();
+    bindGlobalSearch();
+    bindAdminIO();
+    navigate('inicio');
+    $('#appLoader').style.display = 'none';
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
