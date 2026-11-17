@@ -68,7 +68,6 @@
       </nav>
 
       <div class="sidebar-footer">
-        <a class="btn btn-ghost btn-block" id="sidebarCv" href="#" download>⬇ Descargar CV</a>
         <p class="sidebar-note">© <span id="year"></span> · Portafolio profesional</p>
       </div>
     </aside>
@@ -289,6 +288,8 @@
       <div class="modal-head">
         <h2 id="pdfTitle">Documento</h2>
         <div class="row-actions">
+          <button class="btn btn-sm btn-outline" id="pdfZoomOut" aria-label="Alejar">➖</button>
+          <button class="btn btn-sm btn-outline" id="pdfZoomIn" aria-label="Acercar">➕</button>
           <button class="btn btn-sm btn-outline" id="pdfFull">⛶ Pantalla completa</button>
           <a class="btn btn-sm btn-outline" id="pdfOpen" target="_blank" rel="noopener">↗ Abrir en pestaña</a>
           <a class="btn btn-sm btn-primary" id="pdfDownload" download>⬇ Descargar</a>
@@ -296,10 +297,10 @@
         </div>
       </div>
       <div class="pdf-body">
-        <iframe id="pdfFrame" title="Visor de documentos PDF"></iframe>
+        <div id="pdfPages" aria-label="Visor de documentos PDF"></div>
       </div>
       <p class="pdf-hint muted small">
-        El documento se muestra en su calidad original. Usa la barra del visor para acercar, alejar y cambiar de página.
+        Desplázate para ver todas las páginas y usa ➖ ➕ para acercar o alejar.
       </p>
     </div>
   </div>
@@ -394,6 +395,8 @@
   <!-- ===================== NOTIFICACIONES ===================== -->
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
