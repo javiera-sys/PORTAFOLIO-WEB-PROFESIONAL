@@ -1,0 +1,137 @@
+{
+  "profile": {
+    "name": "Tu Nombre Completo",
+    "role": "Ingeniero en Diseño Industrial",
+    "specialty": "CAD/CAM · Modelado 3D · Tecnología de la Madera",
+    "description": "Especialista en diseño de producto, ingeniería de fabricación y desarrollo de soluciones técnicas con enfoque en eficiencia y precisión.",
+    "photo": "assets/profile.jpg",
+    "status": "Disponible para proyectos",
+    "cv": "documents/cv.pdf",
+    "experienceYears": 8,
+    "specialties": ["Diseño CAD/CAM", "Modelado 3D", "Planos técnicos", "Tecnología de la madera", "Manufactura", "Desarrollo web"]
+  },
+  "categories": ["Todos", "Diseño CAD", "Diseño CAM", "Modelado 3D", "Tecnología de la madera", "Desarrollo web", "Ingeniería"],
+  "projects": [
+    {
+      "id": "p1",
+      "name": "Mesa de ensamble modular",
+      "category": "Diseño CAD",
+      "description": "Diseño paramétrico de mesa modular con ensambles sin herrajes, orientada a producción en serie. Incluye planos de despiece, explosión y documentación técnica.",
+      "date": "2024-08",
+      "software": ["SolidWorks", "AutoCAD", "KeyShot"],
+      "images": ["assets/p1-1.jpg", "assets/p1-2.jpg"],
+      "documents": [
+        { "label": "Plano de despiece", "url": "documents/p1-planos.pdf" },
+        { "label": "Memoria técnica", "url": "documents/p1-memoria.pdf" }
+      ],
+      "links": [{ "label": "Ver en Behance", "url": "https://www.behance.net/" }],
+      "notes": "Optimizado para corte CNC. Tolerancias ±0.5 mm.",
+      "featured": true
+    },
+    {
+      "id": "p2",
+      "name": "Prototipo de silla ergonómica",
+      "category": "Modelado 3D",
+      "description": "Modelado y render fotorrealista de silla ergonómica. Estudio antropométrico y validación con superficies clase A.",
+      "date": "2023-11",
+      "software": ["Rhino", "Blender", "KeyShot"],
+      "images": ["assets/p2-1.jpg"],
+      "documents": [{ "label": "Ficha técnica", "url": "documents/p2-ficha.pdf" }],
+      "links": [],
+      "notes": "Render final a 4K para catálogo comercial.",
+      "featured": true
+    },
+    {
+      "id": "p3",
+      "name": "Mecanizado de pieza estructural",
+      "category": "Diseño CAM",
+      "description": "Programación CAM y simulación de mecanizado 3 ejes para pieza estructural. Estrategia de desbaste y acabado con control de viruta.",
+      "date": "2023-05",
+      "software": ["Mastercam", "Fusion 360"],
+      "images": ["assets/p3-1.jpg"],
+      "documents": [{ "label": "Programa CAM (PDF)", "url": "documents/p3-cam.pdf" }],
+      "links": [],
+      "notes": "Reducción de tiempo de ciclo del 18%.",
+      "featured": false
+    },
+    {
+      "id": "p4",
+      "name": "Despiece y armado de mobiliario",
+      "category": "Tecnología de la madera",
+      "description": "Proyecto de mobiliario en madera maciza con técnica de ensamble a cola de milano. Documentación fotográfica del proceso de fabricación.",
+      "date": "2022-10",
+      "software": ["AutoCAD", "SketchUp"],
+      "images": ["assets/p4-1.jpg", "assets/p4-2.jpg"],
+      "documents": [],
+      "links": [],
+      "notes": "Acabado natural con aceite.",
+      "featured": false
+    },
+    {
+      "id": "p5",
+      "name": "Calculadora de despiece",
+      "category": "Desarrollo web",
+      "description": "Herramienta web para cálculo de despiece y optimización de corte. HTML, CSS y JavaScript puro.",
+      "date": "2024-02",
+      "software": ["HTML5", "CSS3", "JavaScript"],
+      "images": ["assets/p5-1.jpg"],
+      "documents": [],
+      "links": [{ "label": "Abrir demo", "url": "https://github.com/" }],
+      "notes": "Sin dependencias externas.",
+      "featured": true
+    }
+  ],
+  "gallery": [
+    { "id": "g1", "title": "Ensamble a cola de milano", "description": "Proceso artesanal en madera maciza.", "category": "Tecnología de la madera", "image": "assets/g1.jpg" },
+    { "id": "g2", "title": "Render final de silla", "description": "Render fotorrealista en KeyShot.", "category": "Modelado 3D", "image": "assets/g2.jpg" },
+    { "id": "g3", "title": "Taller de mecanizado", "description": "Centro de mecanizado CNC de 3 ejes.", "category": "Maquinaria", "image": "assets/g3.jpg" },
+    { "id": "g4", "title": "Pieza terminada", "description": "Componente estructural finalizado.", "category": "Productos terminados", "image": "assets/g4.jpg" },
+    { "id": "g5", "title": "Plano de explosión", "description": "Vista explosionada del ensamble.", "category": "Diseño CAD", "image": "assets/g5.jpg" },
+    { "id": "g6", "title": "Proceso de lijado", "description": "Acabado manual de superficie.", "category": "Procesos de fabricación", "image": "assets/g6.jpg" }
+  ],
+  "apps": [
+    {
+      "id": "a1",
+      "name": "Calculadora de despiece",
+      "description": "Herramienta para optimizar el corte de tableros y calcular materiales.",
+      "image": "assets/app1.jpg",
+      "technologies": ["HTML5", "CSS3", "JavaScript"],
+      "functionality": "Calcula cantidad de piezas, área total y desperdicio estimado.",
+      "url": "https://github.com/",
+      "repo": "https://github.com/"
+    }
+  ],
+  "skills": [
+    { "id": "s1", "name": "SolidWorks", "category": "Diseño CAD", "level": 90, "description": "Modelado paramétrico, ensambles y planos." },
+    { "id": "s2", "name": "AutoCAD", "category": "Diseño CAD", "level": 88, "description": "Planos técnicos 2D y documentación." },
+    { "id": "s3", "name": "Mastercam", "category": "Diseño CAM", "level": 80, "description": "Programación y simulación de mecanizado." },
+    { "id": "s4", "name": "Blender", "category": "Modelado 3D", "level": 85, "description": "Modelado, renderizado y animación." },
+    { "id": "s5", "name": "Tecnología de la madera", "category": "Tecnología de la madera", "level": 92, "description": "Ensamble, corte y acabado profesional." },
+    { "id": "s6", "name": "Desarrollo web", "category": "Desarrollo de aplicaciones", "level": 78, "description": "HTML5, CSS3, JavaScript y Git." }
+  ],
+  "experience": [
+    {
+      "id": "e1",
+      "company": "Empresa Ejemplo S.A.",
+      "position": "Diseñador Industrial",
+      "period": "2021 — Actualidad",
+      "activities": ["Diseño de producto y planos técnicos.", "Coordinación con producción."],
+      "achievements": ["Reducción de costos del 12%.", "Implementación de biblioteca CAD."]
+    },
+    {
+      "id": "e2",
+      "company": "Taller Técnico Ejemplo",
+      "position": "Técnico en CAD/CAM",
+      "period": "2018 — 2021",
+      "activities": ["Programación CAM.", "Verificación de piezas."],
+      "achievements": ["Optimización de tiempos de ciclo en 15%."]
+    }
+  ],
+  "contact": {
+    "email": "tucorreo@ejemplo.com",
+    "linkedin": "https://www.linkedin.com/",
+    "github": "https://github.com/",
+    "phone": "+00 000 000 000",
+    "cv": "documents/cv.pdf"
+  }
+}
