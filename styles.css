@@ -507,3 +507,5 @@ textarea { resize: vertical; min-height: 90px; }
 .nav-item.is-hidden{opacity:.55}
 
 .hero.no-photo{grid-template-columns:1fr}
+
+img{-webkit-user-drag:none;-webkit-touch-callout:none}
