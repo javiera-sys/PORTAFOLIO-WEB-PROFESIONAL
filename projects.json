@@ -191,6 +191,32 @@
       "links": [],
       "notes": "",
       "hidden": false
+    },
+    {
+      "id": "id-w2iafq8",
+      "name": "Comedor rectangular",
+      "category": "Diseño SolidWorks",
+      "date": "",
+      "featured": false,
+      "description": "Comedor rectangular con cubierta de plancha y base con ingeniería de madera solida.",
+      "software": [
+        "SolidWorks",
+        "AutoCAD"
+      ],
+      "images": [
+        "assets/260417_7H4TQRVGS9-mwl841le.jpg",
+        "assets/261027_RAX0EGK32U-mwl843hu.jpg",
+        "assets/260616_C6KU2CCDGV-mwl8451a.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD5821TBLBA",
+          "url": "documents/IFD5821TBLBA-mwl846ee.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "hidden": false
     }
   ],
   "gallery": [
