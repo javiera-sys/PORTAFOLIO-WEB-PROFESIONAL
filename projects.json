@@ -90,26 +90,29 @@
     },
     {
       "id": "p3",
-      "name": "Mecanizado de pieza estructural",
-      "category": "Diseño CAM",
-      "description": "Programación CAM y simulación de mecanizado 3 ejes para pieza estructural. Estrategia de desbaste y acabado con control de viruta.",
+      "name": "COMODA (CAJONERA)",
+      "category": "Diseño SolidWorks",
+      "description": "Mueble de recamara solido con cubierta de triplay de nogal y jaladeras metalicas.",
       "date": "2023-05",
       "software": [
-        "Mastercam",
-        "Fusion 360"
+        "SolidWorks",
+        "AutoCAD"
       ],
       "images": [
-        "assets/p3-1.jpg"
+        "assets/240919_TZF2ALC60T-mwl7p6pv.jpg",
+        "assets/240919_X3WIQ070Q8-mwl7p83o.jpg",
+        "assets/240919_KIHEP1SBYD-mwl7p9vt.jpg"
       ],
       "documents": [
         {
-          "label": "Programa CAM (PDF)",
-          "url": "documents/p3-cam.pdf"
+          "label": "IFD3421CHT",
+          "url": "documents/IFD3421CHT-mwl7phsy.pdf"
         }
       ],
       "links": [],
       "notes": "Reducción de tiempo de ciclo del 18%.",
-      "featured": false
+      "featured": false,
+      "hidden": false
     },
     {
       "id": "p4",
