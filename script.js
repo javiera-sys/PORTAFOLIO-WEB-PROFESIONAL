@@ -629,6 +629,10 @@
   ['projects','gallery','apps','skills','experience'].forEach(k =>
     SCHEMAS[k].fields.push({ key: 'hidden', label: '🚫 Ocultar al público', type: 'checkbox' }));
   SCHEMAS.profile.hideable = SCHEMAS.contact.hideable = true;
+  const upl = (s, k, t) => { SCHEMAS[s].fields.find(f => f.key === k).upload = t; };
+  upl('profile', 'photo', 'image'); upl('profile', 'cv', 'pdf'); upl('contact', 'cv', 'pdf');
+  upl('gallery', 'image', 'image'); upl('apps', 'image', 'image');
+  upl('projects', 'images', 'image'); upl('projects', 'documents', 'pdf');
   SCHEMAS.site = {
     label: 'Sitio', singleton: true, dataKey: 'site',
     fields: [
@@ -754,6 +758,7 @@
       return `<div class="field${full}">
         <label>${esc(f.label)}${schema.hideable ? ` <span class="hide-toggle"><input type="checkbox" data-hide="${f.key}" ${(value.hide || {})[f.key] ? 'checked' : ''}> ocultar</span>` : ''}</label>
         ${control}
+        ${f.upload ? `<div style="margin-top:6px;"><button type="button" class="btn btn-sm btn-outline" data-upload="${f.upload}">📎 Subir ${f.upload === 'pdf' ? 'PDF' : 'imagen'}${f.type === 'list' ? ' (una o varias)' : ''}</button></div>` : ''}
         ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
       </div>`;
     }).join('')}</div>`;
@@ -1031,6 +1036,85 @@
     window.addEventListener('hashchange', () => { if (location.hash === '#admin' && !state.admin) openLogin(); });
   }
 
+  /* ---------- Subida de imágenes y PDF a GitHub ---------- */
+  async function shrinkImage(file, ext) {
+    if (!/^(jpe?g|png|webp)$/.test(ext)) return { blob: file, ext };          // gif/svg: tal cual
+    try {
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      const png = ext === 'png';
+      const blob = await new Promise(r => c.toBlob(r, png ? 'image/png' : 'image/jpeg', 0.85));
+      return { blob, ext: png ? 'png' : 'jpg' };
+    } catch (e) { throw new Error('No se pudo procesar la imagen (usa JPG, PNG o WebP).'); }
+  }
+
+  async function uploadFile(file, kind) {
+    if (!state.admin) throw new Error('Inicia sesión.');
+    const cfg = JSON.parse(localStorage.getItem('gh_cfg') || '{}');
+    const owner = cfg.owner || GH_DEFAULTS.owner, repo = cfg.repo || GH_DEFAULTS.repo, branch = cfg.branch || GH_DEFAULTS.branch;
+    if (/^TU-/.test(owner) || /^TU-/.test(repo)) throw new Error('Primero pulsa «Guardar en GitHub» una vez para registrar usuario y repositorio.');
+    const stored = localStorage.getItem('gh_tok_enc');
+    if (!stored || !state.pw) throw new Error('Falta el token: guarda una vez en GitHub con «Recordar token» marcado.');
+    const token = await openToken(state.pw, stored);
+
+    let blob = file, ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (kind === 'image') {
+      if (!file.type.startsWith('image/')) throw new Error('Elige un archivo de imagen.');
+      ({ blob, ext } = await shrinkImage(file, ext));
+    } else if (ext !== 'pdf') throw new Error('Solo se permiten archivos PDF.');
+    if (blob.size > 25 * 1024 * 1024) throw new Error('El archivo supera 25 MB.');
+
+    const base = file.name.replace(/\.[^.]+$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'archivo';
+    const path = (kind === 'pdf' ? 'documents/' : 'assets/') + base + '-' + Date.now().toString(36) + '.' + ext;
+    const b64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(String(r.result).split(',')[1]);
+      r.onerror = () => rej(new Error('No se pudo leer el archivo.'));
+      r.readAsDataURL(blob);
+    });
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Subir ' + path, content: b64, branch })
+    });
+    if (!res.ok) { let d = ''; try { d = (await res.json()).message || ''; } catch (e) {} throw new Error(`GitHub respondió ${res.status}. ${d}`); }
+    return { path, name: file.name.replace(/\.[^.]+$/, '') };
+  }
+
+  function bindUploads() {
+    $('#adminPanel').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-upload]');
+      if (!btn) return;
+      const kind = btn.dataset.upload;
+      const ctrl = btn.closest('.field').querySelector('[data-field]');
+      const multi = ctrl.dataset.type === 'list' || ctrl.dataset.type === 'pairs';
+      const input = document.createElement('input');
+      input.type = 'file'; input.multiple = multi;
+      input.accept = kind === 'pdf' ? 'application/pdf,.pdf' : 'image/*';
+      input.onchange = async () => {
+        const label = btn.textContent;
+        btn.disabled = true;
+        let ok = 0;
+        for (const file of Array.from(input.files)) {
+          try {
+            btn.textContent = 'Subiendo ' + file.name + '…';
+            const { path, name } = await uploadFile(file, kind);
+            const line = ctrl.dataset.type === 'pairs' ? name + '|' + path : path;
+            ctrl.value = multi ? (ctrl.value.trim() ? ctrl.value.trim() + '\n' : '') + line : line;
+            ok++;
+          } catch (err) { toast(file.name + ': ' + err.message, 'error'); }
+        }
+        btn.disabled = false; btn.textContent = label;
+        if (ok) toast(ok + ' archivo(s) subido(s). Pulsa «Guardar» y luego «Guardar en GitHub».', 'success');
+      };
+      input.click();
+    });
+  }
+
   /* ---------- Bind UI ---------- */
   function bindUI() {
     $$('.nav-item').forEach(b => b.addEventListener('click', () => navigate(b.dataset.nav)));
@@ -1096,6 +1180,7 @@
     bindGlobalSearch();
     bindAdminIO();
     bindAuth();
+    bindUploads();
     applyAdminUI();
     navigate('inicio');
     if (location.hash === '#admin') openLogin();
