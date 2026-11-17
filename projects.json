@@ -217,6 +217,32 @@
       "links": [],
       "notes": "",
       "hidden": false
+    },
+    {
+      "id": "id-pvlepsb",
+      "name": "CONSOLA",
+      "category": "Diseño SolidWorks",
+      "date": "",
+      "featured": false,
+      "description": "Consola de madera solida, cubierta y costados de triplay, con muchos cajones.",
+      "software": [
+        "SolidWorks",
+        "AutoCAD"
+      ],
+      "images": [
+        "assets/260311_VABMVEHLT1-mwl87cp5.jpg",
+        "assets/260311_30HOUB58YI-mwl87dqm.jpg",
+        "assets/260311_7BP1DJ665H-mwl87fl3.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD6531CNSBL",
+          "url": "documents/IFD6531CNSBL-mwl87hzp.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "hidden": false
     }
   ],
   "gallery": [
