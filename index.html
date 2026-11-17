@@ -102,7 +102,7 @@
 
       <!-- Banner de borrador local -->
       <div class="banner" id="draftBanner" hidden>
-        <span>⚠ Estás viendo un <strong>borrador local</strong> guardado en este navegador. No es visible para los visitantes.</span>
+        <span>⚠ Estás viendo un <strong>borrador local</strong> guardado en este navegador. No es visible para los visitantes hasta que lo subas a GitHub.</span>
         <button class="btn btn-sm btn-outline" id="discardDraft">Descartar borrador</button>
       </div>
 
@@ -237,21 +237,25 @@
           <div class="section-head">
             <div>
               <h1 class="h1">Panel de administración</h1>
-              <p class="muted">Edita el contenido y exporta <code>projects.json</code> para publicarlo en GitHub.</p>
+              <p class="muted">Edita el contenido y súbelo a GitHub con un solo clic.</p>
             </div>
             <div class="head-actions">
-              <button class="btn btn-primary btn-sm" id="btnExport">⬇ Exportar projects.json</button>
+              <button class="btn btn-primary btn-sm" id="btnSaveGithub">💾 Guardar en GitHub</button>
+              <button class="btn btn-outline btn-sm" id="btnExport">⬇ Exportar copia local</button>
               <button class="btn btn-outline btn-sm" id="btnImport">⬆ Importar JSON</button>
               <input type="file" id="importFile" accept="application/json,.json" hidden>
             </div>
           </div>
 
           <div class="notice">
-            <strong>Cómo funciona la publicación:</strong> los cambios que hagas aquí se guardan como
-            <em>borrador local</em> en este navegador (útil para previsualizar). Para que los vean todos los
-            visitantes, pulsa <strong>Exportar projects.json</strong>, reemplaza el archivo del repositorio y sube
-            también las imágenes a <code>assets/</code> y los PDF a <code>documents/</code>. Después haz
-            <em>commit</em> y <em>push</em>. GitHub Pages no permite guardar archivos desde el navegador.
+            <strong>Flujo de trabajo:</strong>
+            1) Edita cada apartado y pulsa <em>Guardar (borrador local)</em> para ver los cambios al instante.
+            2) Cuando termines, pulsa <strong>💾 Guardar en GitHub</strong>.
+            3) Pega tu token personal de GitHub (fine-grained, permiso <strong>Contents: Read &amp; Write</strong> sobre este repo).
+            4) Listo: el <code>projects.json</code> se sube automáticamente y GitHub Pages publica los cambios en 1–3 minutos.
+            <br><br>
+            🔒 <em>El token solo se usa en esa petición y nunca se guarda.</em>
+            Para subir <strong>fotos o PDFs</strong>, usa la web de GitHub: <code>Add file → Upload files</code> en la carpeta <code>assets/</code> o <code>documents/</code>.
           </div>
 
           <div class="tabs" id="adminTabs"></div>
@@ -295,6 +299,60 @@
       <p class="pdf-hint muted small">
         El documento se muestra en su calidad original. Usa la barra del visor para acercar, alejar y cambiar de página.
       </p>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: GUARDAR EN GITHUB ===================== -->
+  <div class="modal" id="ghModal" aria-hidden="true">
+    <div class="modal-dialog" style="max-width:560px;" role="dialog" aria-modal="true" aria-labelledby="ghTitle">
+      <div class="modal-head">
+        <h2 id="ghTitle">💾 Guardar cambios en GitHub</h2>
+        <button class="icon-btn" data-close-modal="ghModal" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <p class="muted small" style="margin-top:0;">
+          Pega tu token personal de GitHub (fine-grained, permiso <strong>Contents: Read &amp; Write</strong>
+          solo sobre este repositorio). Se usa únicamente en esta petición y no se almacena.
+        </p>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Usuario / organización</label>
+          <input class="input" id="ghOwner" type="text" placeholder="tu-usuario" autocomplete="off">
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Repositorio</label>
+          <input class="input" id="ghRepo" type="text" placeholder="tu-repo" autocomplete="off">
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Rama</label>
+          <input class="input" id="ghBranch" type="text" value="main" autocomplete="off">
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Ruta del archivo</label>
+          <input class="input" id="ghPath" type="text" value="projects.json" autocomplete="off">
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Token de GitHub</label>
+          <input class="input" id="ghToken" type="password" placeholder="github_pat_..." autocomplete="off">
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Mensaje de commit</label>
+          <input class="input" id="ghMsg" type="text" value="Actualizar portafolio desde el panel" autocomplete="off">
+        </div>
+
+        <div id="ghStatus" class="small" style="min-height:22px;"></div>
+
+        <div class="form-actions">
+          <button class="btn btn-outline" data-close-modal="ghModal">Cancelar</button>
+          <button class="btn btn-primary" id="ghConfirm">💾 Confirmar guardado</button>
+        </div>
+      </div>
     </div>
   </div>
 
