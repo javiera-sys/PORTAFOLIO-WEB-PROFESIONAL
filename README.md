@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/34952597/README.md)
+[README.md](https://github.com/user-attachments/files/34953752/README.md)
 # Portafolio Profesional Interactivo
 
 Web estática (HTML + CSS + JS) compatible con **GitHub Pages**. Los visitantes solo ven el sitio;
@@ -17,7 +17,7 @@ tú entras con usuario y contraseña, editas y publicas en GitHub con un clic.
 2. Edita en las pestañas: Perfil, Proyectos, Galería, Aplicaciones, Habilidades, Experiencia, Contacto y **Sitio** (títulos, pie y secciones).
 3. **Ocultar al público:** botón «Ocultar» por elemento, casilla «ocultar» por campo (Perfil/Contacto) y «Ocultar sección» en la pestaña Sitio. Usa **Vista pública** para comprobarlo.
 4. **💾 Guardar en GitHub.** La primera vez pega el token; se guarda cifrado solo en tu dispositivo.
-5. GitHub Pages publica en 1–3 minutos. Las fotos y PDFs se suben desde la web de GitHub (Add file → Upload files).
+5. GitHub Pages publica en 1–3 minutos. Las fotos y PDFs se suben con el botón **📎 Subir** de cada campo (se guardan en `assets/` y `documents/`).
 
 ## Seguridad
 - Nunca escribas el token ni la contraseña en los archivos del repositorio.
