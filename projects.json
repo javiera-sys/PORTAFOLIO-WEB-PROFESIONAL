@@ -64,27 +64,29 @@
     },
     {
       "id": "p2",
-      "name": "Prototipo de silla ergonómica",
+      "name": "Comedor",
       "category": "Modelado 3D",
-      "description": "Modelado y render fotorrealista de silla ergonómica. Estudio antropométrico y validación con superficies clase A.",
+      "description": "Comedor con cubierta curva de triplay, base de madera solida.",
       "date": "2023-11",
       "software": [
-        "Rhino",
-        "Blender",
-        "KeyShot"
+        "SolidWorks",
+        "AutoCAD"
       ],
       "images": [
-        "assets/p2-1.jpg"
+        "assets/241017_Q1MFS0MWHU-mwl7jb8j.jpg",
+        "assets/260408_NY0NIGQIJW-mwl7jegw.jpg",
+        "assets/241017_D1N47V9JK5-mwl7jti0.jpg"
       ],
       "documents": [
         {
-          "label": "Ficha técnica",
-          "url": "documents/p2-ficha.pdf"
+          "label": "IFD3422TBL",
+          "url": "documents/IFD3422TBL-mwl7k45j.pdf"
         }
       ],
       "links": [],
       "notes": "Render final a 4K para catálogo comercial.",
-      "featured": true
+      "featured": false,
+      "hidden": false
     },
     {
       "id": "p3",
