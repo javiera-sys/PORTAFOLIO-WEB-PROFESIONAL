@@ -283,6 +283,33 @@
       "notes": "",
       "models": [],
       "hidden": false
+    },
+    {
+      "id": "id-szjzyns",
+      "name": "Consola ",
+      "category": "SolidWorks",
+      "date": "2024-12",
+      "featured": false,
+      "description": "Consola de madera sólida, cubierta y costados con triplay de Melina, múltiples cajoneras.",
+      "software": [
+        "Solidworks",
+        "AutoCAD"
+      ],
+      "images": [
+        "assets/1000171311-mwlmo3pw.jpg",
+        "assets/1000171310-mwlmo6fh.jpg",
+        "assets/1000171312-mwlmo8jh.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD6531CNSBL",
+          "url": "documents/IFD6531CNSBL-mwlmon7v.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [],
+      "hidden": false
     }
   ],
   "gallery": [
