@@ -124,22 +124,30 @@
     },
     {
       "id": "p4",
-      "name": "Despiece y armado de mobiliario",
-      "category": "Tecnología de la madera",
-      "description": "Proyecto de mobiliario en madera maciza con técnica de ensamble a cola de milano. Documentación fotográfica del proceso de fabricación.",
+      "name": "Cama King",
+      "category": "SolidWorks",
+      "description": "Cama de tamaño king, madera sólida y tableros de triplay de teca.",
       "date": "2022-10",
       "software": [
-        "AutoCAD",
-        "SketchUp"
+        "SolidWork",
+        "AutoCad"
       ],
       "images": [
-        "assets/p4-1.jpg",
-        "assets/p4-2.jpg"
+        "assets/1000171288-mwlh5uly.jpg",
+        "assets/1000171287-mwlh5wsn.jpg",
+        "assets/1000171286-mwlh5y9t.jpg"
       ],
-      "documents": [],
+      "documents": [
+        {
+          "label": "IFD6731PLTEK",
+          "url": "documents/IFD6731PLTEK-mwlh8ttt.pdf"
+        }
+      ],
       "links": [],
-      "notes": "Acabado natural con aceite.",
-      "featured": false
+      "notes": "",
+      "featured": false,
+      "models": [],
+      "hidden": false
     },
     {
       "id": "p5",
