@@ -78,7 +78,11 @@
         "SolidWork",
         "AutoCad"
       ],
-      "images": [],
+      "images": [
+        "assets/1000171282-mwlg226o.jpg",
+        "assets/1000171281-mwlg24l6.jpg",
+        "assets/1000171280-mwlg26yu.jpg"
+      ],
       "documents": [
         {
           "label": "IFD4221TBL",
