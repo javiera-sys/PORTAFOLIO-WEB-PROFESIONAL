@@ -48,6 +48,14 @@
       ],
       "documents": [
         {
+          "label": "Plano de despiece",
+          "url": "documents/p1-planos.pdf"
+        },
+        {
+          "label": "Memoria técnica",
+          "url": "documents/p1-memoria.pdf"
+        },
+        {
           "label": "IFD4851CKT",
           "url": "documents/IFD4851CKT-mwl6snp2.pdf"
         }
@@ -60,189 +68,103 @@
       ],
       "notes": "",
       "featured": true,
-      "hidden": false
+      "hidden": false,
+      "models": [
+        {
+          "label": "IFD4851CKT",
+          "url": "models/IFD4851CKT-mwld5909.glb"
+        }
+      ]
     },
     {
       "id": "p2",
-      "name": "Comedor",
+      "name": "Prototipo de silla ergonómica",
       "category": "Modelado 3D",
-      "description": "Comedor con cubierta curva de triplay, base de madera solida.",
+      "description": "Modelado y render fotorrealista de silla ergonómica. Estudio antropométrico y validación con superficies clase A.",
       "date": "2023-11",
       "software": [
-        "SolidWorks",
-        "AutoCAD"
+        "Rhino",
+        "Blender",
+        "KeyShot"
       ],
       "images": [
-        "assets/241017_Q1MFS0MWHU-mwl7jb8j.jpg",
-        "assets/260408_NY0NIGQIJW-mwl7jegw.jpg",
-        "assets/241017_D1N47V9JK5-mwl7jti0.jpg"
+        "assets/p2-1.jpg"
       ],
       "documents": [
         {
-          "label": "IFD3422TBL",
-          "url": "documents/IFD3422TBL-mwl7k45j.pdf"
+          "label": "Ficha técnica",
+          "url": "documents/p2-ficha.pdf"
         }
       ],
       "links": [],
       "notes": "Render final a 4K para catálogo comercial.",
-      "featured": false,
-      "hidden": false
+      "featured": true
     },
     {
       "id": "p3",
-      "name": "COMODA (CAJONERA)",
-      "category": "Diseño SolidWorks",
-      "description": "Mueble de recamara solido con cubierta de triplay de nogal y jaladeras metalicas.",
+      "name": "Mecanizado de pieza estructural",
+      "category": "Diseño CAM",
+      "description": "Programación CAM y simulación de mecanizado 3 ejes para pieza estructural. Estrategia de desbaste y acabado con control de viruta.",
       "date": "2023-05",
       "software": [
-        "SolidWorks",
-        "AutoCAD"
+        "Mastercam",
+        "Fusion 360"
       ],
       "images": [
-        "assets/240919_TZF2ALC60T-mwl7p6pv.jpg",
-        "assets/240919_X3WIQ070Q8-mwl7p83o.jpg",
-        "assets/240919_KIHEP1SBYD-mwl7p9vt.jpg"
+        "assets/p3-1.jpg"
       ],
       "documents": [
         {
-          "label": "IFD3421CHT",
-          "url": "documents/IFD3421CHT-mwl7phsy.pdf"
+          "label": "Programa CAM (PDF)",
+          "url": "documents/p3-cam.pdf"
         }
       ],
       "links": [],
       "notes": "Reducción de tiempo de ciclo del 18%.",
-      "featured": false,
-      "hidden": false
+      "featured": false
     },
     {
       "id": "p4",
-      "name": "CHIMENEA - TV STAND",
-      "category": "Diseño SolidWorks",
-      "description": "Chimenea multipropósito, con adaptabilidad para chimenea eléctrica y entrepaños centrales removibles. ",
+      "name": "Despiece y armado de mobiliario",
+      "category": "Tecnología de la madera",
+      "description": "Proyecto de mobiliario en madera maciza con técnica de ensamble a cola de milano. Documentación fotográfica del proceso de fabricación.",
       "date": "2022-10",
       "software": [
-        "SolidWorks",
-        "AutoCAD"
+        "AutoCAD",
+        "SketchUp"
       ],
       "images": [
-        "assets/261019_X3JLW97526-mwl7txb8.jpg",
-        "assets/261009_5KMMGI11FI-mwl7u1c8.jpg",
-        "assets/261019_8TLDT7Y7O0-mwl7u26z.jpg"
+        "assets/p4-1.jpg",
+        "assets/p4-2.jpg"
       ],
-      "documents": [
-        {
-          "label": "IFD5821STF93",
-          "url": "documents/IFD5821STF93-mwl7u5jp.pdf"
-        }
-      ],
+      "documents": [],
       "links": [],
       "notes": "Acabado natural con aceite.",
-      "featured": false,
-      "hidden": false
+      "featured": false
     },
     {
       "id": "p5",
-      "name": "Comedor redondo",
-      "category": "Diseño SolidWorks",
-      "description": "Comedor redondo, cubierta con resina y base solida de madera.",
+      "name": "Calculadora de despiece",
+      "category": "Desarrollo web",
+      "description": "Herramienta web para cálculo de despiece y optimización de corte. HTML, CSS y JavaScript puro.",
       "date": "2024-02",
       "software": [
-        "SolidWorks",
-        "AutoCAD"
+        "HTML5",
+        "CSS3",
+        "JavaScript"
       ],
       "images": [
-        "assets/260410_78OXKW0GHG-mwl7xthk.jpg",
-        "assets/260416_G5QXV50LX3-mwl7xumy.jpg",
-        "assets/260326_UU913VZVM2-mwl7xw9k.jpg"
+        "assets/p5-1.jpg"
       ],
-      "documents": [
+      "documents": [],
+      "links": [
         {
-          "label": "IFD6471RNDTP",
-          "url": "documents/IFD6471RNDTP-mwl7xxp7.pdf"
+          "label": "Abrir demo",
+          "url": "https://github.com/"
         }
       ],
-      "links": [],
       "notes": "Sin dependencias externas.",
-      "featured": true,
-      "hidden": false
-    },
-    {
-      "id": "id-vxrzm8w",
-      "name": "CAMA TAMAÑO KING",
-      "category": "Diseño de SolidWorks ",
-      "date": "",
-      "featured": false,
-      "description": "Cama con postes solidos de madera y triplay de teca para tableros.",
-      "software": [
-        "SolidWorks",
-        "AutoCAD"
-      ],
-      "images": [
-        "assets/260428_WSPLX1I2T5-mwl8150c.jpg",
-        "assets/260416_NOSEI95T3H-mwl81645.jpg",
-        "assets/260504_A1SC3M7HJS-mwl816yy.jpg"
-      ],
-      "documents": [
-        {
-          "label": "IFD6731PLTEK",
-          "url": "documents/IFD6731PLTEK-mwl81db3.pdf"
-        }
-      ],
-      "links": [],
-      "notes": "",
-      "hidden": false
-    },
-    {
-      "id": "id-w2iafq8",
-      "name": "Comedor rectangular",
-      "category": "Diseño SolidWorks",
-      "date": "",
-      "featured": false,
-      "description": "Comedor rectangular con cubierta de plancha y base con ingeniería de madera solida.",
-      "software": [
-        "SolidWorks",
-        "AutoCAD"
-      ],
-      "images": [
-        "assets/260417_7H4TQRVGS9-mwl841le.jpg",
-        "assets/261027_RAX0EGK32U-mwl843hu.jpg",
-        "assets/260616_C6KU2CCDGV-mwl8451a.jpg"
-      ],
-      "documents": [
-        {
-          "label": "IFD5821TBLBA",
-          "url": "documents/IFD5821TBLBA-mwl846ee.pdf"
-        }
-      ],
-      "links": [],
-      "notes": "",
-      "hidden": false
-    },
-    {
-      "id": "id-pvlepsb",
-      "name": "CONSOLA",
-      "category": "Diseño SolidWorks",
-      "date": "",
-      "featured": false,
-      "description": "Consola de madera solida, cubierta y costados de triplay, con muchos cajones.",
-      "software": [
-        "SolidWorks",
-        "AutoCAD"
-      ],
-      "images": [
-        "assets/260311_VABMVEHLT1-mwl87cp5.jpg",
-        "assets/260311_30HOUB58YI-mwl87dqm.jpg",
-        "assets/260311_7BP1DJ665H-mwl87fl3.jpg"
-      ],
-      "documents": [
-        {
-          "label": "IFD6531CNSBL",
-          "url": "documents/IFD6531CNSBL-mwl87hzp.pdf"
-        }
-      ],
-      "links": [],
-      "notes": "",
-      "hidden": false
+      "featured": true
     }
   ],
   "gallery": [
