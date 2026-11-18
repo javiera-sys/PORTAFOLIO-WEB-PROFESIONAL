@@ -1,3 +1,4 @@
+
 /* =========================================================
    PORTAFOLIO PROFESIONAL — script.js
    ========================================================= */
@@ -9,6 +10,7 @@
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const uid = () => 'id-' + Math.random().toString(36).slice(2, 9);
   const DRAFT_KEY = 'portfolio_draft_v1';
+  const BASE_KEY  = 'portfolio_draft_base_v1';   // versión publicada sobre la que se hizo el borrador
   const THEME_KEY = 'portfolio_theme';
 
   // ⚠️ CAMBIA AQUÍ tus datos de GitHub (se usan para prellenar el modal)
@@ -173,30 +175,37 @@
 
   async function loadData() {
     let pub;
+    state.usedFallback = false;
     try {
       const res = await fetch('projects.json?_=' + Date.now(), { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       pub = await res.json();
-    } catch (e) { pub = JSON.parse(JSON.stringify(FALLBACK)); }
+    } catch (e) { pub = JSON.parse(JSON.stringify(FALLBACK)); state.usedFallback = true; }
     state.data = pub; state.isDraft = false;
+    state.baseJson = JSON.stringify(pub);
     if (state.admin) {
       const draft = localStorage.getItem(DRAFT_KEY);
       if (draft) {
         try {
           const d = JSON.parse(draft);
-          if (JSON.stringify(d) === JSON.stringify(pub)) localStorage.removeItem(DRAFT_KEY);
-          else { state.data = d; state.isDraft = true; }
+          if (JSON.stringify(d) === JSON.stringify(pub)) { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(BASE_KEY); }
+          else { state.data = d; state.isDraft = true; state.baseJson = localStorage.getItem(BASE_KEY) || state.baseJson; }
         } catch (e) { /* ignora */ }
       }
     }
   }
 
   function saveDraft() {
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state.data)); state.isDraft = true; $('#draftBanner').hidden = false; }
+    try {
+      if (!localStorage.getItem(DRAFT_KEY) && state.baseJson) localStorage.setItem(BASE_KEY, state.baseJson);
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(state.data)); state.isDraft = true; $('#draftBanner').hidden = false;
+    }
     catch (e) { toast('No se pudo guardar el borrador local.', 'error'); }
   }
 
   function clearDraft() {
+    if (!window.confirm('¿Descartar los cambios que aún no has subido a GitHub? Se perderán.')) return;
+    localStorage.removeItem(BASE_KEY);
     localStorage.removeItem(DRAFT_KEY);
     state.isDraft = false;
     $('#draftBanner').hidden = true;
@@ -925,6 +934,9 @@
       setStatus('El token no parece válido (debe empezar por github_pat_ o ghp_).', 'err'); return;
     }
 
+    if (state.usedFallback) {
+      setStatus('❌ No se pudo cargar projects.json del sitio y se muestran datos de ejemplo. Recarga la página antes de guardar para no sobrescribir tus datos.', 'err'); return;
+    }
     state.ghBusy = true;
     const btn = $('#ghConfirm');
     btn.disabled = true;
@@ -948,6 +960,26 @@
       if (getRes.ok) {
         const meta = await getRes.json();
         sha = meta.sha;
+        let remoteObj = null;
+        try { remoteObj = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob((meta.content || '').replace(/\s/g, '')), ch => ch.charCodeAt(0)))); } catch (e) { /* ilegible */ }
+        if (remoteObj && state.baseJson && JSON.stringify(remoteObj) !== state.baseJson && JSON.stringify(remoteObj) !== JSON.stringify(state.data)) {
+          const lost = [];
+          [['projects', 'Proyectos'], ['gallery', 'Galería'], ['apps', 'Aplicaciones'], ['skills', 'Habilidades'], ['experience', 'Experiencia']].forEach(([k, lab]) => {
+            const have = new Set((state.data[k] || []).map(x => x.id));
+            const miss = (remoteObj[k] || []).filter(x => !have.has(x.id)).map(x => x.name || x.title || x.company || x.id);
+            if (miss.length) lost.push('• ' + lab + ': ' + miss.join(', '));
+          });
+          const ok = window.confirm('⚠️ El archivo en GitHub cambió desde que cargaste esta página (otro dispositivo o una publicación reciente).\n\n' +
+            (lost.length ? 'Si continúas se PERDERÁN estos elementos que están en GitHub y no en tu versión:\n' + lost.join('\n') : 'Si continúas se sobrescribirán esos cambios.') +
+            '\n\nAntes se descargará una copia del archivo actual de GitHub.\n\n¿Sobrescribir de todos modos?');
+          if (!ok) { setStatus('Cancelado: no se modificó nada en GitHub. Recarga la página y revisa.', 'err'); return; }
+          try {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(remoteObj, null, 2)], { type: 'application/json' }));
+            a.download = 'respaldo-github-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.json';
+            a.click();
+          } catch (e) { /* ignora */ }
+        }
       } else if (getRes.status !== 404) {
         const errText = await getRes.text();
         throw new Error(`No se pudo leer el archivo (HTTP ${getRes.status}). ${errText.slice(0, 120)}`);
@@ -988,6 +1020,8 @@
 
       // Copia de seguridad (no afecta la web pública)
       try { localStorage.setItem('portfolio_backup_last', jsonStr); } catch {}
+      state.baseJson = JSON.stringify(state.data);
+      try { localStorage.setItem(BASE_KEY, state.baseJson); } catch {}
 
       if (commitUrl) {
         const link = document.createElement('a');
