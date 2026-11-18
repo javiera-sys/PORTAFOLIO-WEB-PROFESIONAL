@@ -387,6 +387,30 @@
         }
       ],
       "hidden": false
+    },
+    {
+      "id": "id-xg65kra",
+      "name": "Comedor ",
+      "category": "",
+      "date": "2026-08",
+      "featured": false,
+      "description": "",
+      "software": [],
+      "images": [
+        "assets/1000171518-mwmnxhak.jpg",
+        "assets/1000171519-mwmnxirq.jpg",
+        "assets/1000171517-mwmnxjtf.jpg"
+      ],
+      "documents": [],
+      "links": [],
+      "notes": "",
+      "models": [
+        {
+          "label": "IFD3422TBL",
+          "url": "models/IFD3422TBL-mwmnxtyc.glb"
+        }
+      ],
+      "hidden": false
     }
   ],
   "gallery": [
