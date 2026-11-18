@@ -151,27 +151,30 @@
     },
     {
       "id": "p5",
-      "name": "Calculadora de despiece",
-      "category": "Desarrollo web",
-      "description": "Herramienta web para cálculo de despiece y optimización de corte. HTML, CSS y JavaScript puro.",
+      "name": "Banca",
+      "category": "SolidWorks",
+      "description": "Banca forrada de triplay de teca, y para los costados triplay de teca flexible, cuerpo de cimbra.",
       "date": "2024-02",
       "software": [
-        "HTML5",
-        "CSS3",
-        "JavaScript"
+        "SolidWork",
+        "AutoCad"
       ],
       "images": [
-        "assets/p5-1.jpg"
+        "assets/1000171290-mwlhmhlf.jpg",
+        "assets/1000171289-mwlhmjkp.jpg",
+        "assets/1000171291-mwlhmler.jpg"
       ],
-      "documents": [],
-      "links": [
+      "documents": [
         {
-          "label": "Abrir demo",
-          "url": "https://github.com/"
+          "label": "IFD4221BEN",
+          "url": "documents/IFD4221BEN-mwlhn30q.pdf"
         }
       ],
-      "notes": "Sin dependencias externas.",
-      "featured": true
+      "links": [],
+      "notes": "",
+      "featured": true,
+      "models": [],
+      "hidden": false
     }
   ],
   "gallery": [
