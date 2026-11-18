@@ -256,6 +256,33 @@
       "notes": "",
       "models": [],
       "hidden": false
+    },
+    {
+      "id": "id-2q8n2q9",
+      "name": "Comedor redondo ",
+      "category": "Solidworks",
+      "date": "2026-06",
+      "featured": false,
+      "description": "Comedor redondo, con cubierta de resina y base sólida.",
+      "software": [
+        "Solidworks",
+        "AutoCAD"
+      ],
+      "images": [
+        "assets/1000171309-mwlma2vq.jpg",
+        "assets/1000171307-mwlma52t.jpg",
+        "assets/1000171308-mwlma6zl.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD6471RNDTP",
+          "url": "documents/IFD6471RNDTP-mwlmeov0.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [],
+      "hidden": false
     }
   ],
   "gallery": [
