@@ -48,14 +48,6 @@
       ],
       "documents": [
         {
-          "label": "Plano de despiece",
-          "url": "documents/p1-planos.pdf"
-        },
-        {
-          "label": "Memoria técnica",
-          "url": "documents/p1-memoria.pdf"
-        },
-        {
           "label": "IFD4851CKT",
           "url": "documents/IFD4851CKT-mwl6snp2.pdf"
         }
@@ -78,27 +70,26 @@
     },
     {
       "id": "p2",
-      "name": "Prototipo de silla ergonómica",
-      "category": "Modelado 3D",
-      "description": "Modelado y render fotorrealista de silla ergonómica. Estudio antropométrico y validación con superficies clase A.",
+      "name": "Comedor rectangular ",
+      "category": "SolidWorks ",
+      "description": "Comedor rectangular con triplay de teca y boquilla de madera.",
       "date": "2023-11",
       "software": [
-        "Rhino",
-        "Blender",
-        "KeyShot"
+        "SolidWork",
+        "AutoCad"
       ],
-      "images": [
-        "assets/p2-1.jpg"
-      ],
+      "images": [],
       "documents": [
         {
-          "label": "Ficha técnica",
-          "url": "documents/p2-ficha.pdf"
+          "label": "IFD4221TBL",
+          "url": "documents/IFD4221TBL-mwlfr7d2.pdf"
         }
       ],
       "links": [],
-      "notes": "Render final a 4K para catálogo comercial.",
-      "featured": true
+      "notes": "",
+      "featured": false,
+      "models": [],
+      "hidden": false
     },
     {
       "id": "p3",
