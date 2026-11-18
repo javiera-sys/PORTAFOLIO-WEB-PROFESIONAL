@@ -175,6 +175,33 @@
       "featured": true,
       "models": [],
       "hidden": false
+    },
+    {
+      "id": "id-6tiujne",
+      "name": "Comedor rectangular ",
+      "category": "SolidWork ",
+      "date": "2025-02",
+      "featured": false,
+      "description": "Comedor rectangular de plancha, con curvas naturales y base de madera.",
+      "software": [
+        "SolidWork",
+        "AutoCad"
+      ],
+      "images": [
+        "assets/1000171296-mwlinddb.jpg",
+        "assets/1000171294-mwlinfc8.jpg",
+        "assets/1000171295-mwlinh09.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD5821TBLBA",
+          "url": "documents/IFD5821TBLBA-mwlinpwe.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [],
+      "hidden": false
     }
   ],
   "gallery": [
