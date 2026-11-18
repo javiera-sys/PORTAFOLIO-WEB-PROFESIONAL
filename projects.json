@@ -310,6 +310,33 @@
       "notes": "",
       "models": [],
       "hidden": false
+    },
+    {
+      "id": "id-qinqm3f",
+      "name": "Consola",
+      "category": "Solidworks",
+      "date": "2026-08",
+      "featured": false,
+      "description": "Consola minimalista con frente resina, huacal con ingeniería.",
+      "software": [
+        "Solidworks",
+        "AutoCAD"
+      ],
+      "images": [
+        "assets/1000171314-mwln1wfr.jpg",
+        "assets/1000171313-mwln1zdd.jpg",
+        "assets/1000171315-mwln21g3.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD4851CNS",
+          "url": "documents/IFD4851CNS-mwln3pqn.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [],
+      "hidden": false
     }
   ],
   "gallery": [
