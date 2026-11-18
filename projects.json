@@ -92,7 +92,12 @@
       "links": [],
       "notes": "",
       "featured": false,
-      "models": [],
+      "models": [
+        {
+          "label": "IFD4221TBL1",
+          "url": "models/IFD4221TBL1-mwmli9t9.glb"
+        }
+      ],
       "hidden": false
     },
     {
@@ -119,7 +124,12 @@
       "links": [],
       "notes": "",
       "featured": false,
-      "models": [],
+      "models": [
+        {
+          "label": "IFD4221CAB",
+          "url": "models/IFD4221CAB-mwmliyh3.glb"
+        }
+      ],
       "hidden": false
     },
     {
@@ -146,7 +156,12 @@
       "links": [],
       "notes": "",
       "featured": false,
-      "models": [],
+      "models": [
+        {
+          "label": "IFD6731HBDEK",
+          "url": "models/IFD6731HBDEK-mwmlk747.glb"
+        }
+      ],
       "hidden": false
     },
     {
@@ -173,7 +188,12 @@
       "links": [],
       "notes": "",
       "featured": true,
-      "models": [],
+      "models": [
+        {
+          "label": "IFD4221BEN",
+          "url": "models/IFD4221BEN-mwmll0oa.glb"
+        }
+      ],
       "hidden": false
     },
     {
