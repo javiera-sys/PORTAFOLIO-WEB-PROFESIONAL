@@ -1133,6 +1133,29 @@
     } catch (e) { throw new Error('No se pudo procesar la imagen (usa JPG, PNG o WebP).'); }
   }
 
+  /* >>> BIG */
+  // Archivos grandes: la API de "contents" de GitHub los rechaza (422); la de blobs/commits admite hasta 100 MB.
+  async function ghApi(url, token, method, body) {
+    const res = await fetch('https://api.github.com' + url, {
+      method,
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (!res.ok) { let d = ''; try { d = (await res.json()).message || ''; } catch (e) {} throw new Error('GitHub respondió ' + res.status + '. ' + d); }
+    return res.json();
+  }
+  async function putLarge(owner, repo, branch, token, path, b64, message) {
+    const r = '/repos/' + owner + '/' + repo, br = branch.split('/').map(encodeURIComponent).join('/');
+    const ref = await ghApi(r + '/git/ref/heads/' + br, token, 'GET');
+    const parent = ref.object.sha;
+    const commit = await ghApi(r + '/git/commits/' + parent, token, 'GET');
+    const blob = await ghApi(r + '/git/blobs', token, 'POST', { content: b64, encoding: 'base64' });
+    const tree = await ghApi(r + '/git/trees', token, 'POST', { base_tree: commit.tree.sha, tree: [{ path, mode: '100644', type: 'blob', sha: blob.sha }] });
+    const nc = await ghApi(r + '/git/commits', token, 'POST', { message, tree: tree.sha, parents: [parent] });
+    await ghApi(r + '/git/refs/heads/' + br, token, 'PATCH', { sha: nc.sha });
+  }
+  /* <<< BIG */
+
   async function uploadFile(file, kind, opt = {}, step = () => {}) {
     if (!state.admin) throw new Error('Inicia sesión.');
     const cfg = JSON.parse(localStorage.getItem('gh_cfg') || '{}');
@@ -1154,7 +1177,7 @@
       if (opt.compress) { step('Comprimiendo PDF…'); blob = await compressPdf(file, step); }
     }
     if (blob !== file) toast('Optimizado: ' + (file.size / 1048576).toFixed(1) + ' MB → ' + (blob.size / 1048576).toFixed(1) + ' MB');
-    const maxMb = 25;   // GitHub rechaza (422) archivos más grandes por esta vía
+    const maxMb = 60;   // tope razonable para subir desde el navegador (memoria del celular)
     if (blob.size > maxMb * 1024 * 1024) throw new Error('Pesa ' + (blob.size / 1048576).toFixed(1) + ' MB' + (blob !== file ? ' incluso optimizado' : '') + ' y el límite es ' + maxMb + ' MB. ' +
       (kind === 'glb' ? 'Elige texturas de 512 px o simplifica la malla (Decimate en Blender).' : 'Divide o reduce el PDF.'));
     step('Subiendo ' + (blob.size / 1048576).toFixed(1) + ' MB…');
@@ -1169,6 +1192,11 @@
       r.onerror = () => rej(new Error('No se pudo leer el archivo.'));
       r.readAsDataURL(blob);
     });
+    if (blob.size > 20 * 1024 * 1024) {
+      step('Subiendo archivo grande (' + (blob.size / 1048576).toFixed(1) + ' MB)… puede tardar');
+      await putLarge(owner, repo, branch, token, path, b64, 'Subir ' + path);
+      return { path, name: file.name.replace(/\.[^.]+$/, '') };
+    }
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' },
