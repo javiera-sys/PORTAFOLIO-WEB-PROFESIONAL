@@ -202,6 +202,33 @@
       "notes": "",
       "models": [],
       "hidden": false
+    },
+    {
+      "id": "id-092wwq1",
+      "name": "Litera Queen - Individual ",
+      "category": "SolidWork",
+      "date": "2025-03",
+      "featured": false,
+      "description": "Litera superior Queen y litera inferior individual, estructura de pino sólido reforzado con travesaños metálicos",
+      "software": [
+        "SolidWork",
+        "AutoCad"
+      ],
+      "images": [
+        "assets/1000171297-mwljboph.jpg",
+        "assets/1000171298-mwljbslr.jpg",
+        "assets/1000171299-mwljbvzz.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD3732BNKTWTP-2",
+          "url": "documents/IFD3732BNKTWTP-2-mwljgxn6.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [],
+      "hidden": false
     }
   ],
   "gallery": [
