@@ -1,4 +1,3 @@
-
 /* =========================================================
    PORTAFOLIO PROFESIONAL — script.js
    ========================================================= */
@@ -342,7 +341,7 @@
       <div style="margin-bottom:16px;">
         <strong>${esc(m.label || 'Modelo 3D')}</strong>
         <model-viewer src="${esc(m.url)}" alt="${esc(m.label || 'Modelo 3D')}" camera-controls touch-action="pan-y" auto-rotate
-          shadow-intensity="1" exposure="1" loading="lazy" ar ar-modes="webxr scene-viewer quick-look"
+          shadow-intensity="1" exposure="1" loading="eager" reveal="auto" ${(p.images || [])[0] ? `poster="${esc(p.images[0])}"` : ''} ar ar-modes="webxr scene-viewer quick-look"
           style="display:block;width:100%;height:360px;margin-top:6px;border-radius:10px;background:var(--surface-2);"></model-viewer>
         <p class="muted small" style="margin:6px 0 0;">Arrastra para girar · rueda o pellizco para acercar · en celular puedes verlo en realidad aumentada.</p>
       </div>`).join('');
@@ -1151,6 +1150,7 @@
     else if (ext !== 'pdf') throw new Error('Solo se permiten archivos PDF.');
     const maxMb = kind === 'glb' ? 50 : 25;
     if (blob.size > maxMb * 1024 * 1024) throw new Error('El archivo supera ' + maxMb + ' MB.');
+    if (kind === 'glb' && blob.size > 8 * 1024 * 1024) toast('El modelo pesa ' + (blob.size / 1048576).toFixed(1) + ' MB y tardará en abrir. Conviene optimizarlo (compresión Draco y texturas de 1024 px).');
 
     const base = file.name.replace(/\.[^.]+$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'archivo';
