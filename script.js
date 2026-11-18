@@ -805,7 +805,7 @@
       return `<div class="field${full}">
         <label>${esc(f.label)}${schema.hideable ? ` <span class="hide-toggle"><input type="checkbox" data-hide="${f.key}" ${(value.hide || {})[f.key] ? 'checked' : ''}> ocultar</span>` : ''}</label>
         ${control}
-        ${f.upload ? `<div style="margin-top:6px;"><button type="button" class="btn btn-sm btn-outline" data-upload="${f.upload}">📎 Subir ${f.upload === 'pdf' ? 'PDF' : f.upload === 'glb' ? 'modelo 3D (.glb)' : 'imagen'}${f.type === 'list' ? ' (una o varias)' : ''}</button>${f.upload === 'image' ? ' <label class="small" style="margin-left:8px;"><input type="checkbox" data-wm checked style="width:auto;"> Marca de agua</label>' : ''}</div>` : ''}
+        ${f.upload ? `<div style="margin-top:6px;"><button type="button" class="btn btn-sm btn-outline" data-upload="${f.upload}">📎 Subir ${f.upload === 'pdf' ? 'PDF' : f.upload === 'glb' ? 'modelo 3D (.glb)' : 'imagen'}${f.type === 'list' ? ' (una o varias)' : ''}</button>${f.upload === 'image' ? ' <label class="small" style="margin-left:8px;"><input type="checkbox" data-wm checked style="width:auto;"> Marca de agua</label>' : ''}${f.upload === 'pdf' ? ' <label class="small" style="margin-left:8px;"><input type="checkbox" data-cmp checked style="width:auto;"> Comprimir</label>' : ''}${f.upload === 'glb' ? ' <select class="input" data-tex style="width:auto;display:inline-block;margin-left:8px;padding:6px 8px;"><option value="2048">Texturas 2048 px</option><option value="1024" selected>Texturas 1024 px</option><option value="512">Texturas 512 px</option></select>' : ''}</div>` : ''}
         ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
       </div>`;
     }).join('')}</div>`;
@@ -1133,7 +1133,7 @@
     } catch (e) { throw new Error('No se pudo procesar la imagen (usa JPG, PNG o WebP).'); }
   }
 
-  async function uploadFile(file, kind, wm) {
+  async function uploadFile(file, kind, opt = {}, step = () => {}) {
     if (!state.admin) throw new Error('Inicia sesión.');
     const cfg = JSON.parse(localStorage.getItem('gh_cfg') || '{}');
     const owner = cfg.owner || GH_DEFAULTS.owner, repo = cfg.repo || GH_DEFAULTS.repo, branch = cfg.branch || GH_DEFAULTS.branch;
@@ -1145,11 +1145,19 @@
     let blob = file, ext = (file.name.split('.').pop() || '').toLowerCase();
     if (kind === 'image') {
       if (!file.type.startsWith('image/')) throw new Error('Elige un archivo de imagen.');
-      ({ blob, ext } = await shrinkImage(file, ext, wm));
-    } else if (kind === 'glb') { if (ext !== 'glb') throw new Error('Solo se permiten archivos .glb.'); }
-    else if (ext !== 'pdf') throw new Error('Solo se permiten archivos PDF.');
-    const maxMb = kind === 'glb' ? 50 : 25;
-    if (blob.size > maxMb * 1024 * 1024) throw new Error('El archivo supera ' + maxMb + ' MB.');
+      ({ blob, ext } = await shrinkImage(file, ext, opt.wm));
+    } else if (kind === 'glb') {
+      if (ext !== 'glb') throw new Error('Solo se permiten archivos .glb.');
+      step('Optimizando modelo…'); blob = await optimizeGlb(file, opt.tex || 1024, step);
+    } else {
+      if (ext !== 'pdf') throw new Error('Solo se permiten archivos PDF.');
+      if (opt.compress) { step('Comprimiendo PDF…'); blob = await compressPdf(file, step); }
+    }
+    if (blob !== file) toast('Optimizado: ' + (file.size / 1048576).toFixed(1) + ' MB → ' + (blob.size / 1048576).toFixed(1) + ' MB');
+    const maxMb = 25;   // GitHub rechaza (422) archivos más grandes por esta vía
+    if (blob.size > maxMb * 1024 * 1024) throw new Error('Pesa ' + (blob.size / 1048576).toFixed(1) + ' MB' + (blob !== file ? ' incluso optimizado' : '') + ' y el límite es ' + maxMb + ' MB. ' +
+      (kind === 'glb' ? 'Elige texturas de 512 px o simplifica la malla (Decimate en Blender).' : 'Divide o reduce el PDF.'));
+    step('Subiendo ' + (blob.size / 1048576).toFixed(1) + ' MB…');
     if (kind === 'glb' && blob.size > 8 * 1024 * 1024) toast('El modelo pesa ' + (blob.size / 1048576).toFixed(1) + ' MB y tardará en abrir. Conviene optimizarlo (compresión Draco y texturas de 1024 px).');
 
     const base = file.name.replace(/\.[^.]+$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -1170,6 +1178,116 @@
     return { path, name: file.name.replace(/\.[^.]+$/, '') };
   }
 
+  /* >>> OPT */
+  // Reduce las texturas incrustadas de un .glb (normalmente lo que más pesa). La geometría no se toca.
+  async function shrinkTexture(bytes, mime, maxTex) {
+    const bmp = await createImageBitmap(new Blob([bytes], { type: mime }), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+    const k = Math.min(1, maxTex / Math.max(bmp.width, bmp.height));
+    if (k === 1 && bytes.length < 400 * 1024) { if (bmp.close) bmp.close(); return null; }
+    const w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0, w, h);
+    if (bmp.close) bmp.close();
+    let alpha = false;
+    if (mime === 'image/png') { const d = ctx.getImageData(0, 0, w, h).data; for (let i = 3; i < d.length; i += 4) { if (d[i] < 255) { alpha = true; break; } } }
+    const blob = await new Promise(r => c.toBlob(r, alpha ? 'image/png' : 'image/jpeg', 0.85));
+    return { bytes: new Uint8Array(await blob.arrayBuffer()), mime: alpha ? 'image/png' : 'image/jpeg' };
+  }
+
+  async function optimizeGlb(file, maxTex, step) {
+    const buf = await file.arrayBuffer(), dv = new DataView(buf);
+    if (buf.byteLength < 20 || dv.getUint32(0, true) !== 0x46546C67 || dv.getUint32(4, true) !== 2) throw new Error('El archivo no es un GLB válido.');
+    let off = 12, json = null, bin = null;
+    while (off + 8 <= buf.byteLength) {
+      const len = dv.getUint32(off, true), type = dv.getUint32(off + 4, true), start = off + 8;
+      if (type === 0x4E4F534A && !json) json = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, start, len)));
+      else if (type === 0x004E4942 && !bin) bin = new Uint8Array(buf, start, len);
+      off = start + len;
+    }
+    if (!json || !bin || !json.images || !json.images.length || !json.bufferViews) return file;
+    const imgOf = new Map();
+    json.images.forEach((im, i) => { if (im.bufferView !== undefined) imgOf.set(im.bufferView, i); });
+    const parts = []; let pos = 0, done = 0;
+    for (let i = 0; i < json.bufferViews.length; i++) {
+      const bv = json.bufferViews[i];
+      if ((bv.buffer || 0) !== 0) continue;
+      const o0 = bv.byteOffset || 0;
+      let bytes = bin.subarray(o0, o0 + bv.byteLength);
+      if (imgOf.has(i)) {
+        const im = json.images[imgOf.get(i)];
+        step('Optimizando texturas (' + (++done) + '/' + imgOf.size + ')…');
+        try {
+          const r = await shrinkTexture(bytes, im.mimeType || 'image/png', maxTex);
+          if (r && r.bytes.length < bytes.length) { bytes = r.bytes; im.mimeType = r.mime; }
+        } catch (e) { /* deja la textura original */ }
+      }
+      const pad = (4 - pos % 4) % 4;
+      if (pad) { parts.push(new Uint8Array(pad)); pos += pad; }
+      bv.byteOffset = pos; bv.byteLength = bytes.length;
+      parts.push(bytes); pos += bytes.length;
+    }
+    const binLen = pos + ((4 - pos % 4) % 4);
+    json.buffers[0].byteLength = binLen;
+    const js = new TextEncoder().encode(JSON.stringify(json));
+    const jl = js.length + ((4 - js.length % 4) % 4);
+    const total = 12 + 8 + jl + 8 + binLen;
+    const out = new Uint8Array(total), o = new DataView(out.buffer);
+    o.setUint32(0, 0x46546C67, true); o.setUint32(4, 2, true); o.setUint32(8, total, true);
+    o.setUint32(12, jl, true); o.setUint32(16, 0x4E4F534A, true);
+    out.set(js, 20); out.fill(0x20, 20 + js.length, 20 + jl);
+    const b0 = 20 + jl;
+    o.setUint32(b0, binLen, true); o.setUint32(b0 + 4, 0x004E4942, true);
+    let p = b0 + 8;
+    for (const part of parts) { out.set(part, p); p += part.length; }
+    return new Blob([out], { type: 'model/gltf-binary' });
+  }
+
+  // PDF: dibuja cada página como imagen JPEG y arma un PDF nuevo (más liviano; el texto deja de ser seleccionable)
+  function buildPdf(pages) {
+    const te = new TextEncoder(), chunks = [], offs = []; let len = 0;
+    const add = d => { const b = typeof d === 'string' ? te.encode(d) : d; chunks.push(b); len += b.length; };
+    const obj = (id, body) => { offs[id] = len; add(id + ' 0 obj\n' + body + '\nendobj\n'); };
+    const n = pages.length, total = 3 + 3 * n;
+    add('%PDF-1.4\n');
+    obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+    obj(2, '<< /Type /Pages /Count ' + n + ' /Kids [' + pages.map((_, i) => (3 + 3 * i) + ' 0 R').join(' ') + '] >>');
+    pages.forEach((p, i) => {
+      const pg = 3 + 3 * i, ct = pg + 1, im = pg + 2, w = p.w.toFixed(2), h = p.h.toFixed(2);
+      obj(pg, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + w + ' ' + h + '] /Resources << /XObject << /Im0 ' + im + ' 0 R >> >> /Contents ' + ct + ' 0 R >>');
+      const cs = 'q ' + w + ' 0 0 ' + h + ' 0 0 cm /Im0 Do Q';
+      obj(ct, '<< /Length ' + cs.length + ' >>\nstream\n' + cs + '\nendstream');
+      offs[im] = len;
+      add(im + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + p.pw + ' /Height ' + p.ph + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + p.jpg.length + ' >>\nstream\n');
+      add(p.jpg); add('\nendstream\nendobj\n');
+    });
+    const xr = len;
+    add('xref\n0 ' + total + '\n0000000000 65535 f \n');
+    for (let i = 1; i < total; i++) add(String(offs[i]).padStart(10, '0') + ' 00000 n \n');
+    add('trailer\n<< /Size ' + total + ' /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF');
+    return new Blob(chunks, { type: 'application/pdf' });
+  }
+
+  async function compressPdf(file, step) {
+    if (!window.pdfjsLib || file.size < 1.5 * 1024 * 1024) return file;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const pages = [];
+    for (let n = 1; n <= pdf.numPages; n++) {
+      step('Comprimiendo PDF: página ' + n + '/' + pdf.numPages + '…');
+      const page = await pdf.getPage(n), base = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: Math.min(2.5, 2200 / Math.max(base.width, base.height)) });
+      const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.72));
+      pages.push({ w: base.width, h: base.height, pw: c.width, ph: c.height, jpg: new Uint8Array(await blob.arrayBuffer()) });
+      c.width = c.height = 1;
+    }
+    const out = buildPdf(pages);
+    return out.size < file.size * 0.7 ? out : file;   // solo si realmente ahorra al menos 30 %
+  }
+  /* <<< OPT */
+
   function bindUploads() {
     // Disuasión para visitantes: sin menú contextual ni arrastre sobre imágenes (no es protección real)
     document.addEventListener('contextmenu', e => { if (!state.admin && e.target.closest && e.target.closest('img')) e.preventDefault(); });
@@ -1178,7 +1296,8 @@
       const btn = e.target.closest('[data-upload]');
       if (!btn) return;
       const kind = btn.dataset.upload;
-      const wm = !!(btn.parentElement.querySelector('[data-wm]') || {}).checked;
+      const row = btn.parentElement, q = s => row.querySelector(s);
+      const opt = { wm: !!(q('[data-wm]') || {}).checked, compress: !!(q('[data-cmp]') || {}).checked, tex: parseInt((q('[data-tex]') || {}).value, 10) || 1024 };
       const ctrl = btn.closest('.field').querySelector('[data-field]');
       const multi = ctrl.dataset.type === 'list' || ctrl.dataset.type === 'pairs';
       const input = document.createElement('input');
@@ -1191,7 +1310,7 @@
         for (const file of Array.from(input.files)) {
           try {
             btn.textContent = 'Subiendo ' + file.name + '…';
-            const { path, name } = await uploadFile(file, kind, wm);
+            const { path, name } = await uploadFile(file, kind, opt, t => { btn.textContent = t; });
             const line = ctrl.dataset.type === 'pairs' ? name + '|' + path : path;
             ctrl.value = multi ? (ctrl.value.trim() ? ctrl.value.trim() + '\n' : '') + line : line;
             ok++;
