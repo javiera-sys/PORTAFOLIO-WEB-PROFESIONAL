@@ -229,6 +229,33 @@
       "notes": "",
       "models": [],
       "hidden": false
+    },
+    {
+      "id": "id-f2qinl7",
+      "name": "Chest - Comida vertical",
+      "category": "SolidWork",
+      "date": "2024-06",
+      "featured": false,
+      "description": "Cómoda vertical, con cajoneras diferentes tipos de textura, jaladeras de metal.",
+      "software": [
+        "SolidWork",
+        "AutoCad"
+      ],
+      "images": [
+        "assets/1000171301-mwlkhxtu.jpg",
+        "assets/1000171302-mwlkhzsq.jpg",
+        "assets/1000171300-mwlki1nm.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD3421CHT",
+          "url": "documents/IFD3421CHT-mwlkn0ju.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [],
+      "hidden": false
     }
   ],
   "gallery": [
