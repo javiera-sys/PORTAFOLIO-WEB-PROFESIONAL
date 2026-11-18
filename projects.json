@@ -262,7 +262,7 @@
     },
     {
       "id": "id-f2qinl7",
-      "name": "Chest - Comida vertical",
+      "name": "Chest - Comoda vertical",
       "category": "SolidWork",
       "date": "2024-06",
       "featured": false,
@@ -284,7 +284,12 @@
       ],
       "links": [],
       "notes": "",
-      "models": [],
+      "models": [
+        {
+          "label": "3421CHT-COMPLETO",
+          "url": "models/3421CHT-COMPLETO-mwmnon71.glb"
+        }
+      ],
       "hidden": false
     },
     {
@@ -311,7 +316,12 @@
       ],
       "links": [],
       "notes": "",
-      "models": [],
+      "models": [
+        {
+          "label": "IFD6471RND",
+          "url": "models/IFD6471RND-mwmnp6mr.glb"
+        }
+      ],
       "hidden": false
     },
     {
@@ -338,7 +348,12 @@
       ],
       "links": [],
       "notes": "",
-      "models": [],
+      "models": [
+        {
+          "label": "IFD6531CNS",
+          "url": "models/IFD6531CNS-mwmnpqvy.glb"
+        }
+      ],
       "hidden": false
     },
     {
@@ -365,7 +380,12 @@
       ],
       "links": [],
       "notes": "",
-      "models": [],
+      "models": [
+        {
+          "label": "IFD4851CNSX94",
+          "url": "models/IFD4851CNSX94-mwmnqbi3.glb"
+        }
+      ],
       "hidden": false
     }
   ],
