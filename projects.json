@@ -97,26 +97,30 @@
     },
     {
       "id": "p3",
-      "name": "Mecanizado de pieza estructural",
-      "category": "Diseño CAM",
-      "description": "Programación CAM y simulación de mecanizado 3 ejes para pieza estructural. Estrategia de desbaste y acabado con control de viruta.",
+      "name": "Gabinete",
+      "category": "SolidWorks",
+      "description": "Es una gabinete vertical cuenta con dos puertas y dos cajones, forrado de triplay de teca flexible y entrepaños.",
       "date": "2023-05",
       "software": [
-        "Mastercam",
-        "Fusion 360"
+        "SolidWork",
+        "AutoCad"
       ],
       "images": [
-        "assets/p3-1.jpg"
+        "assets/1000171285-mwlghf54.jpg",
+        "assets/1000171284-mwlghhgf.jpg",
+        "assets/1000171283-mwlghj78.jpg"
       ],
       "documents": [
         {
-          "label": "Programa CAM (PDF)",
-          "url": "documents/p3-cam.pdf"
+          "label": "IFD4221CAB-1",
+          "url": "documents/IFD4221CAB-1-mwlghy9l.pdf"
         }
       ],
       "links": [],
-      "notes": "Reducción de tiempo de ciclo del 18%.",
-      "featured": false
+      "notes": "",
+      "featured": false,
+      "models": [],
+      "hidden": false
     },
     {
       "id": "p4",
