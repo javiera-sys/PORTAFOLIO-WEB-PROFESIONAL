@@ -411,6 +411,64 @@
         }
       ],
       "hidden": false
+    },
+    {
+      "id": "id-q3ojogx",
+      "name": "Cama king",
+      "category": "",
+      "date": "2023-06",
+      "featured": false,
+      "description": "",
+      "software": [],
+      "images": [
+        "assets/1000171542-mwn1wbwk.jpg",
+        "assets/1000171541-mwn1weld.jpg",
+        "assets/1000171543-mwn1wgj8.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD8681HBDEK1-1",
+          "url": "documents/IFD8681HBDEK1-1-mwn1wx6v.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [
+        {
+          "label": "IFD8681-KING",
+          "url": "models/IFD8681-KING-mwn1y5jt.glb"
+        }
+      ],
+      "hidden": false
+    },
+    {
+      "id": "id-k4rp4tm",
+      "name": "Tv-stand",
+      "category": "",
+      "date": "",
+      "featured": false,
+      "description": "",
+      "software": [],
+      "images": [
+        "assets/1000171537-mwn20jwp.jpg",
+        "assets/1000171536-mwn20lyg.jpg",
+        "assets/1000171535-mwn20nrk.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD8681STN93-1",
+          "url": "documents/IFD8681STN93-1-mwn211w0.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [
+        {
+          "label": "IFD8681STN93",
+          "url": "models/IFD8681STN93-mwn21upc.glb"
+        }
+      ],
+      "hidden": false
     }
   ],
   "gallery": [
