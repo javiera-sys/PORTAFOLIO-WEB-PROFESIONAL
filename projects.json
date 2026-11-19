@@ -401,7 +401,12 @@
         "assets/1000171519-mwmnxirq.jpg",
         "assets/1000171517-mwmnxjtf.jpg"
       ],
-      "documents": [],
+      "documents": [
+        {
+          "label": "IFD3422TBL-1",
+          "url": "documents/IFD3422TBL-1-mwn27fa0.pdf"
+        }
+      ],
       "links": [],
       "notes": "",
       "models": [
@@ -466,6 +471,122 @@
         {
           "label": "IFD8681STN93",
           "url": "models/IFD8681STN93-mwn21upc.glb"
+        }
+      ],
+      "hidden": false
+    },
+    {
+      "id": "id-s5dd8ps",
+      "name": "Sillón Sofa ",
+      "category": "",
+      "date": "",
+      "featured": false,
+      "description": "",
+      "software": [],
+      "images": [
+        "assets/1000171586-mwn28ont.jpg",
+        "assets/1000171585-mwn28qka.jpg",
+        "assets/1000171584-mwn28s10.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IUP325-SOF-1",
+          "url": "documents/IUP325-SOF-1-mwn2cq4d.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [
+        {
+          "label": "IUP325-SOF",
+          "url": "models/IUP325-SOF-mwn2bcd9.glb"
+        }
+      ],
+      "hidden": false
+    },
+    {
+      "id": "id-hip8pdl",
+      "name": "Consola - Chimenea",
+      "category": "",
+      "date": "",
+      "featured": false,
+      "description": "",
+      "software": [],
+      "images": [
+        "assets/1000171572-mwn2eabt.jpg",
+        "assets/1000171573-mwn2eci6.jpg",
+        "assets/1000171574-mwn2eed9.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD6731STF-70",
+          "url": "documents/IFD6731STF-70-mwn2ep79.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [
+        {
+          "label": "IFD6731STF",
+          "url": "models/IFD6731STF-mwn2fb3a.glb"
+        }
+      ],
+      "hidden": false
+    },
+    {
+      "id": "id-uvv7ipj",
+      "name": "Comedor redondo",
+      "category": "",
+      "date": "2021-12",
+      "featured": false,
+      "description": "",
+      "software": [],
+      "images": [
+        "assets/1000171551-mwn2h4x1.jpg",
+        "assets/1000171552-mwn2h9ed.jpg",
+        "assets/1000171553-mwn2hbp0.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD4221RNDBA",
+          "url": "documents/IFD4221RNDBA-mwn2j4d7.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [
+        {
+          "label": "IFD4221RND",
+          "url": "models/IFD4221RND-mwn2jisf.glb"
+        }
+      ],
+      "hidden": false
+    },
+    {
+      "id": "id-dwqih72",
+      "name": "Consola",
+      "category": "",
+      "date": "2025-11",
+      "featured": false,
+      "description": "",
+      "software": [],
+      "images": [
+        "assets/1000171566-mwn2ktok.jpg",
+        "assets/1000171564-mwn2kxkk.jpg",
+        "assets/1000171565-mwn2kzo4.jpg"
+      ],
+      "documents": [
+        {
+          "label": "IFD8521CNSBN",
+          "url": "documents/IFD8521CNSBN-mwn2ljx1.pdf"
+        }
+      ],
+      "links": [],
+      "notes": "",
+      "models": [
+        {
+          "label": "IFD85211",
+          "url": "models/IFD85211-mwn2mgv3.glb"
         }
       ],
       "hidden": false
