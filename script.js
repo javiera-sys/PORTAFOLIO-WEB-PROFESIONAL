@@ -33,6 +33,43 @@
   const secHidden = k => !!((state.data && state.data.site) || {})[k + '_hide'];
   const badge = x => (x && x.hidden && showAll()) ? ' <span class="badge-hidden">Oculto</span>' : '';
 
+  /* ---------- Movimiento y capas (modales, lightbox) ---------- */
+  const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const CLOSE_MS = 160;
+  const isOpen = el => el.classList.contains('open') && !el.classList.contains('closing');
+  // El scroll del fondo se bloquea mientras haya CUALQUIER capa abierta (modal, PDF, lightbox)
+  const syncScrollLock = () => { document.body.style.overflow = $$('.modal.open:not(.closing), .lightbox.open:not(.closing)').length ? 'hidden' : ''; };
+  function showLayer(el) {
+    clearTimeout(el._t);
+    if (!el.classList.contains('open')) el._from = document.activeElement;
+    el.classList.remove('closing');
+    el.classList.add('open');
+    syncScrollLock();
+    const f = el.querySelector('.modal-dialog') || el.querySelector('.lb-close');
+    if (f) { if (f.classList.contains('modal-dialog')) f.tabIndex = -1; f.focus({ preventScroll: true }); }
+  }
+  function hideLayer(el) {
+    if (!isOpen(el)) return;
+    const end = () => {
+      el.classList.remove('open', 'closing'); syncScrollLock();
+      const f = el._from; el._from = null;
+      if (f && f.isConnected && f.focus && !$$('.modal.open, .lightbox.open').length) f.focus({ preventScroll: true });
+    };
+    if (reduceMotion()) return end();
+    el.classList.add('closing'); syncScrollLock();
+    el._t = setTimeout(end, CLOSE_MS);
+  }
+  const PUBLIC_SECS = ['inicio', ...SECS.map(x => x[0])];
+  const ANIM_GROUPS = '.grid-cards > *, .gallery-grid > *, .skills-grid > *, .timeline > *, .contact-grid > *, .grid-2 > *';
+  // Entrada escalonada y ligera del contenido de una sección (se omite con movimiento reducido)
+  function playEnter(el) {
+    if (!el || reduceMotion()) return;
+    $$(ANIM_GROUPS, el).forEach((n, i) => n.style.setProperty('--i', Math.min(i, 8)));
+    el.classList.remove('entering'); void el.offsetWidth; el.classList.add('entering');
+    clearTimeout(el._e); el._e = setTimeout(() => el.classList.remove('entering'), 1000);
+  }
+  const busy = (btn, on) => { btn.disabled = on; btn.classList.toggle('is-loading', on); };
+
   function toast(msg, type = '') {
     const el = document.createElement('div');
     el.className = 'toast ' + type;
@@ -212,21 +249,29 @@
     loadData().then(() => { renderAll(); });
   }
 
-  function navigate(section) {
+  function navigate(section, fromHistory = false) {
     if (section === 'admin' && !state.admin) { openLogin(); return; }
     if (section !== 'inicio' && section !== 'admin' && secHidden(section) && !showAll()) section = 'inicio';
-    state.section = section;
+    const first = !state.started, changed = section !== state.section;
+    state.started = true; state.section = section;
     $$('.section').forEach(el => el.classList.remove('active'));
     const target = $('#section-' + section);
     if (target) target.classList.add('active');
-    $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.nav === section));
+    $$('.nav-item').forEach(b => {
+      const on = b.dataset.nav === section;
+      b.classList.toggle('active', on);
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
     closeSidebar();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+    if (changed || first) playEnter(target);
+    // Historial: el botón «Atrás» del navegador/móvil vuelve a la sección anterior (el panel admin no se registra)
+    if (!fromHistory && changed && section !== 'admin') history.pushState({ s: section }, '', section === 'inicio' ? location.pathname + location.search : '#' + section);
     if (section === 'admin') renderAdmin();
   }
 
-  function openSidebar() { $('#sidebar').classList.add('open'); $('#overlay').hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true'); }
-  function closeSidebar() { $('#sidebar').classList.remove('open'); $('#overlay').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); }
+  function openSidebar() { $('#sidebar').classList.add('open'); $('#overlay').classList.add('show'); $('#menuBtn').setAttribute('aria-expanded', 'true'); }
+  function closeSidebar() { $('#sidebar').classList.remove('open'); $('#overlay').classList.remove('show'); $('#menuBtn').setAttribute('aria-expanded', 'false'); }
 
   function renderHome() {
     const p = state.data.profile || {};
@@ -247,7 +292,7 @@
     [['photo','.hero-media'],['status','#profileStatus'],['role','#profileRole'],['specialty','#profileSpecialty'],['description','#profileDesc'],['experienceYears','#profileStats'],['specialties','#profileSpecialties'],['cv','#btnCv']]
       .forEach(([k, sel]) => { $(sel).style.display = ph(p, k) ? 'none' : ''; });
     $('.hero').classList.toggle('no-photo', ph(p, 'photo'));
-    const hs = $('#homeSpecialties').closest('.card'); if (hs) hs.style.display = ph(p, 'specialties') ? 'none' : '';
+    const hs = $('#homeSpecialties').closest('.card'); if (hs) hs.style.display = (ph(p, 'specialties') || (!(p.specialties || []).length && !showAll())) ? 'none' : '';
 
     const stats = [
       { n: p.experienceYears || 0, l: 'Años de experiencia' },
@@ -263,7 +308,8 @@
     const featured = (vis(state.data.projects)).filter(pr => pr.featured).slice(0, 5);
     $('#homeFeatured').innerHTML = featured.length
       ? featured.map(pr => `<div class="mini-item"><span class="dot"></span><span>${esc(pr.name)}</span><span class="meta">${esc(pr.category || '')}</span></div>`).join('')
-      : '<p class="muted small">Marca proyectos como "destacado" desde el panel.</p>';
+      : (showAll() ? '<p class="muted small">Marca proyectos como "destacado" desde el panel.</p>' : '');
+    const hf = $('#homeFeatured').closest('.card'); if (hf) hf.style.display = (!featured.length && !showAll()) ? 'none' : '';
   }
 
   function renderProjectFilters() {
@@ -273,7 +319,7 @@
       `<button class="filter-chip ${state.projectFilter === c ? 'active' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`
     ).join('');
     $$('#projectFilters .filter-chip').forEach(b => b.addEventListener('click', () => {
-      state.projectFilter = b.dataset.cat; renderProjectFilters(); renderProjects();
+      state.projectFilter = b.dataset.cat; renderProjectFilters(); renderProjects(); playEnter($('#section-proyectos'));
     }));
   }
 
@@ -295,7 +341,7 @@
     $('#projectsEmpty').hidden = items.length !== 0;
 
     grid.innerHTML = items.map(p => `
-      <article class="project-card" data-id="${esc(p.id)}">
+      <article class="project-card" data-id="${esc(p.id)}" role="button" tabindex="0" aria-label="Abrir proyecto: ${esc(p.name)}">
         <div class="project-thumb">
           <img src="${esc(p.images?.[0] || PLACEHOLDER)}" alt="${esc(p.name)}" loading="lazy"
                onerror="this.src='${PLACEHOLDER}'">
@@ -407,23 +453,20 @@
 
   function openModal(id) {
     const m = $('#' + id);
-    m.classList.add('open');
+    showLayer(m);
     m.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
   }
   function closeModal(id) {
     const m = $('#' + id);
-    m.classList.remove('open');
     m.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    hideLayer(m);
     if (id === 'pdfModal') { pdfTask++; setTimeout(() => { $('#pdfPages').innerHTML = ''; }, 250); }
   }
 
   function openLightbox(items, index = 0) {
     if (!items.length) return;
     state.lightbox = { items, index };
-    $('#lightbox').classList.add('open');
-    document.body.style.overflow = 'hidden';
+    showLayer($('#lightbox'));
     updateLightbox();
   }
   function updateLightbox() {
@@ -434,13 +477,14 @@
     img.src = it.image || PLACEHOLDER;
     img.onerror = () => { img.src = PLACEHOLDER; };
     img.alt = it.title || '';
+    img.classList.remove('lb-swap'); void img.offsetWidth; img.classList.add('lb-swap');
     $('#lbTitle').textContent = it.title || '';
     $('#lbDesc').textContent = it.description || '';
     $('#lbCount').textContent = `${index + 1} / ${items.length}`;
   }
   function lbPrev() { const { items, index } = state.lightbox; state.lightbox.index = (index - 1 + items.length) % items.length; updateLightbox(); }
   function lbNext() { const { items, index } = state.lightbox; state.lightbox.index = (index + 1) % items.length; updateLightbox(); }
-  function lbClose() { $('#lightbox').classList.remove('open'); document.body.style.overflow = ''; }
+  function lbClose() { hideLayer($('#lightbox')); }
 
   function renderGallery() {
     const cats = ['Todas', ...new Set((vis(state.data.gallery)).map(g => g.category).filter(Boolean))];
@@ -449,7 +493,7 @@
       `<button class="filter-chip ${state.galleryFilter === c ? 'active' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`
     ).join('');
     $$('#galleryFilters .filter-chip').forEach(b => b.addEventListener('click', () => {
-      state.galleryFilter = b.dataset.cat; renderGallery();
+      state.galleryFilter = b.dataset.cat; renderGallery(); playEnter($('#section-galeria'));
     }));
 
     const items = (vis(state.data.gallery)).filter(g => state.galleryFilter === 'Todas' || g.category === state.galleryFilter);
@@ -457,7 +501,7 @@
     $('#galleryEmpty').hidden = items.length !== 0;
 
     $('#galleryGrid').innerHTML = items.map((g, i) => `
-      <div class="gallery-tile" data-idx="${i}">
+      <div class="gallery-tile" data-idx="${i}" role="button" tabindex="0" aria-label="Ver imagen: ${esc(g.title)}">
         <img src="${esc(g.image || PLACEHOLDER_SQ)}" alt="${esc(g.title)}" loading="lazy"
              onerror="this.src='${PLACEHOLDER_SQ}'">
         <div class="overlay-txt">${esc(g.title)}${badge(g)}</div>
@@ -570,6 +614,8 @@
       }
       box.hidden = false;
     });
+    box.addEventListener('mousedown', e => e.preventDefault());   // el campo no pierde el foco al pulsar un resultado (táctil o clic lento)
+    input.addEventListener('keydown', e => { if (e.key === 'Escape') box.hidden = true; });
     input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; }, 180));
   }
 
@@ -700,6 +746,7 @@
     ).join('');
     $$('#adminTabs .tab').forEach(b => b.addEventListener('click', () => {
       state.adminTab = b.dataset.tab; renderAdmin();
+      const pn = $('#adminPanel'); pn.classList.remove('tab-in'); void pn.offsetWidth; pn.classList.add('tab-in');
     }));
   }
 
@@ -938,7 +985,7 @@
     }
     state.ghBusy = true;
     const btn = $('#ghConfirm');
-    btn.disabled = true;
+    busy(btn, true);
     btn.textContent = 'Guardando…';
     setStatus('Conectando con GitHub…', 'work');
 
@@ -1036,7 +1083,7 @@
       toast('No se pudo guardar en GitHub: ' + (err.message || ''), 'error');
     } finally {
       state.ghBusy = false;
-      btn.disabled = false;
+      busy(btn, false);
       btn.textContent = '💾 Confirmar guardado';
       $('#ghToken').value = '';
     }
@@ -1059,6 +1106,11 @@
   }
   function openLogin() { $('#loginStatus').textContent = ''; openModal('loginModal'); setTimeout(() => $('#loginUser').focus(), 150); }
   async function doLogin() {
+    const btn = $('#loginConfirm'); if (btn.disabled) return;
+    busy(btn, true);
+    try { await tryLogin(); } finally { busy(btn, false); }
+  }
+  async function tryLogin() {
     const st = $('#loginStatus'), u = $('#loginUser').value.trim(), p = $('#loginPass').value;
     if (!window.crypto || !crypto.subtle) { st.textContent = '❌ Abre el sitio por https (GitHub Pages) para iniciar sesión.'; st.className = 'small err'; return; }
     const ok = u === AUTH.user && hex(await derive(p, 'auth')) === AUTH.hash;
@@ -1070,8 +1122,13 @@
   }
   function logout() {
     state.admin = false; state.preview = false; state.pw = null;
-    $('#previewBtn').textContent = '👁 Vista pública';
+    setPreviewLabel();
     loadData().then(() => { applyAdminUI(); renderAll(); navigate('inicio'); });
+  }
+  function setPreviewLabel() {
+    const b = $('#previewBtn'), t = state.preview ? 'Volver a editar' : 'Vista pública';
+    b.innerHTML = '<span aria-hidden="true">' + (state.preview ? '✏️' : '👁') + '</span><span class="lbl">' + t + '</span>';
+    b.setAttribute('aria-label', t);
   }
   function applyAdminUI() {
     const on = state.admin;
@@ -1097,7 +1154,7 @@
     $('#logoutBtn').addEventListener('click', logout);
     $('#previewBtn').addEventListener('click', () => {
       state.preview = !state.preview;
-      $('#previewBtn').textContent = state.preview ? '✏️ Volver a editar' : '👁 Vista pública';
+      setPreviewLabel();
       if (state.preview && state.section === 'admin') navigate('inicio');
       renderAll();
     });
@@ -1333,7 +1390,7 @@
       input.accept = kind === 'pdf' ? 'application/pdf,.pdf' : kind === 'glb' ? '.glb,model/gltf-binary' : 'image/*';
       input.onchange = async () => {
         const label = btn.textContent;
-        btn.disabled = true;
+        busy(btn, true);
         let ok = 0;
         for (const file of Array.from(input.files)) {
           try {
@@ -1344,7 +1401,7 @@
             ok++;
           } catch (err) { toast(file.name + ': ' + err.message, 'error'); }
         }
-        btn.disabled = false; btn.textContent = label;
+        busy(btn, false); btn.textContent = label;
         if (ok) toast(ok + ' archivo(s) subido(s). Pulsa «Guardar» y luego «Guardar en GitHub».', 'success');
       };
       input.click();
@@ -1386,15 +1443,39 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        if ($('#lightbox').classList.contains('open')) lbClose();
-        else if ($('#ghModal').classList.contains('open')) closeModal('ghModal');
-        else if ($('#pdfModal').classList.contains('open')) closeModal('pdfModal');
-        else if ($('#projectModal').classList.contains('open')) closeModal('projectModal');
+        if (isOpen($('#lightbox'))) lbClose();
+        else if (isOpen($('#loginModal'))) closeModal('loginModal');
+        else if (isOpen($('#ghModal'))) closeModal('ghModal');
+        else if (isOpen($('#pdfModal'))) closeModal('pdfModal');
+        else if (isOpen($('#projectModal'))) closeModal('projectModal');
+        else if ($('#sidebar').classList.contains('open')) closeSidebar();
       }
-      if ($('#lightbox').classList.contains('open')) {
+      if (isOpen($('#lightbox'))) {
         if (e.key === 'ArrowLeft') lbPrev();
         if (e.key === 'ArrowRight') lbNext();
       }
+      // Enter / Espacio activan tarjetas de proyecto y miniaturas de galería
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.project-card[role="button"], .gallery-tile[role="button"]')) {
+        e.preventDefault(); e.target.click();
+      }
+    });
+
+    // Lightbox táctil: deslizar a izquierda/derecha cambia de imagen
+    let sx = 0, sy = 0;
+    $('#lightbox').addEventListener('touchstart', (e) => { sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY; }, { passive: true });
+    $('#lightbox').addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && state.lightbox.items.length > 1) (dx < 0 ? lbNext : lbPrev)();
+    }, { passive: true });
+
+    // Si se pasa a vista de escritorio con el menú móvil abierto, se cierra (evita fondo atascado)
+    window.matchMedia('(min-width: 761px)').addEventListener('change', (e) => { if (e.matches) closeSidebar(); });
+
+    // Botón «Atrás»: cierra capas abiertas y vuelve a la sección anterior
+    window.addEventListener('popstate', (e) => {
+      $$('.modal.open, .lightbox.open').forEach(hideLayer);
+      const h = location.hash.slice(1);
+      navigate((e.state && e.state.s) || (PUBLIC_SECS.includes(h) ? h : 'inicio'), true);
     });
   }
 
@@ -1412,19 +1493,27 @@
   }
 
   async function init() {
-    initTheme();
-    $('#year').textContent = new Date().getFullYear();
-    await loadData();
-    renderAll();
-    bindUI();
-    bindGlobalSearch();
-    bindAdminIO();
-    bindAuth();
-    bindUploads();
-    applyAdminUI();
-    navigate('inicio');
-    if (location.hash === '#admin') openLogin();
-    $('#appLoader').style.display = 'none';
+    try {
+      initTheme();
+      $('#year').textContent = new Date().getFullYear();
+      await loadData();
+      renderAll();
+      bindUI();
+      bindGlobalSearch();
+      bindAdminIO();
+      bindAuth();
+      bindUploads();
+      applyAdminUI();
+      const h = location.hash.slice(1);
+      navigate(PUBLIC_SECS.includes(h) ? h : 'inicio', true);
+      if (location.hash === '#admin') openLogin();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      // Siempre se retira el loader, aunque algo falle (antes podía quedarse "Cargando…" para siempre)
+      const l = $('#appLoader'); l.classList.add('done');
+      setTimeout(() => { l.style.display = 'none'; }, 400);
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
