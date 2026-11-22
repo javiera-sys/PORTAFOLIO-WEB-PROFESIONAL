@@ -15,7 +15,7 @@
 <body>
 
   <!-- ===================== LOADER GLOBAL ===================== -->
-  <div class="app-loader" id="appLoader">
+  <div class="app-loader" id="appLoader" role="status">
     <div class="spinner"></div>
     <p>Cargando portafolio…</p>
   </div>
@@ -72,7 +72,7 @@
       </div>
     </aside>
 
-    <div class="overlay" id="overlay" hidden></div>
+    <div class="overlay" id="overlay"></div>
 
     <!-- ===================== CONTENIDO ===================== -->
     <div class="main">
@@ -96,7 +96,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
           </button>
           <button class="btn btn-primary btn-sm" id="adminBtn" style="display:none">Admin</button>
-          <button class="btn btn-outline btn-sm" id="previewBtn" style="display:none">👁 Vista pública</button>
+          <button class="btn btn-outline btn-sm" id="previewBtn" style="display:none" aria-label="Vista pública"><span aria-hidden="true">👁</span><span class="lbl">Vista pública</span></button>
           <button class="btn btn-ghost btn-sm" id="logoutBtn" style="display:none">Salir</button>
         </div>
       </header>
@@ -205,7 +205,7 @@
           <div class="section-head">
             <div>
               <h1 class="h1">Habilidades técnicas</h1>
-              <p class="muted">Competencias profesionales por área. Niveles configurables desde el panel de administración.</p>
+              <p class="muted">Competencias profesionales por área.</p>
             </div>
           </div>
           <div class="skills-grid" id="skillsGrid"></div>
