@@ -4,6 +4,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+[hidden] { display: none !important; }   /* el atributo hidden debe ganar siempre a cualquier display de componente */
 
 :root {
   --bg: #f5f7fb;
@@ -154,9 +155,8 @@ code { background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-
 [data-theme="dark"] .banner { background: #3a2f07; color: #ffd966; border-color: #5a4a0b; }
 
 .content { flex: 1; padding: 28px; max-width: 1400px; width: 100%; margin: 0 auto; }
-.section { display: none; animation: fadeUp .35s ease; }
-.section.active { display: block; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.section { display: none; }
+.section.active { display: block; animation: sectionIn .28s var(--ease); }
 
 .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -267,13 +267,13 @@ textarea { resize: vertical; min-height: 90px; }
   display: flex; flex-direction: column; cursor: pointer;
   transition: transform .2s, box-shadow .2s, border-color .2s;
 }
-.project-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+@media (hover: hover) and (pointer: fine) { .project-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); } }
 .project-thumb {
   aspect-ratio: 16/10; background: var(--surface-2);
   overflow: hidden; position: relative;
 }
 .project-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s; }
-.project-card:hover .project-thumb img { transform: scale(1.05); }
+@media (hover: hover) and (pointer: fine) { .project-card:hover .project-thumb img { transform: scale(1.05); } }
 .project-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .project-cat {
   font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px;
@@ -300,14 +300,14 @@ textarea { resize: vertical; min-height: 90px; }
   border: 1px solid var(--border);
 }
 .gallery-tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s; }
-.gallery-tile:hover img { transform: scale(1.08); }
+@media (hover: hover) and (pointer: fine) { .gallery-tile:hover img { transform: scale(1.08); } }
 .gallery-tile .overlay-txt {
   position: absolute; inset: auto 0 0 0;
   background: linear-gradient(transparent, rgba(0,0,0,.78));
   color: #fff; padding: 14px 12px 10px; font-size: 13px; font-weight: 600;
   transform: translateY(100%); transition: transform .25s;
 }
-.gallery-tile:hover .overlay-txt { transform: none; }
+@media (hover: hover) and (pointer: fine) { .gallery-tile:hover .overlay-txt { transform: none; } }
 
 .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .skill-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
@@ -343,7 +343,7 @@ textarea { resize: vertical; min-height: 90px; }
   border-radius: var(--radius); text-decoration: none !important; color: var(--text);
   transition: transform .2s, border-color .2s, box-shadow .2s;
 }
-.contact-card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: var(--shadow-lg); }
+@media (hover: hover) and (pointer: fine) { .contact-card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: var(--shadow-lg); } }
 .contact-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-size: 20px; flex-shrink: 0; }
 .contact-card strong { display: block; font-size: 14px; }
 .contact-card span { font-size: 12.5px; color: var(--muted); word-break: break-all; }
@@ -393,7 +393,7 @@ textarea { resize: vertical; min-height: 90px; }
   box-shadow: var(--shadow-lg); animation: modalIn .22s ease;
   border: 1px solid var(--border);
 }
-@keyframes modalIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes modalIn { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
 .modal-head {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 14px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
@@ -470,8 +470,8 @@ textarea { resize: vertical; min-height: 90px; }
   .form-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: none; box-shadow: var(--shadow-lg); }
+  .sidebar { transform: translateX(-100%); visibility: hidden; transition: transform .28s var(--ease), visibility 0s .28s; }
+  .sidebar.open { transform: none; visibility: visible; box-shadow: var(--shadow-lg); transition: transform .28s var(--ease), visibility 0s; }
   .main { margin-left: 0; }
   #menuBtn { display: grid; }
   .content { padding: 18px 14px; }
@@ -482,7 +482,10 @@ textarea { resize: vertical; min-height: 90px; }
   .hero-body h1 { font-size: 24px; }
   .grid-2 { grid-template-columns: 1fr; }
   .topbar { padding: 0 12px; gap: 8px; }
-  .search-wrap { max-width: none; }
+  .search-wrap { max-width: none; min-width: 0; }
+  .search-input { min-width: 0; }
+  .topbar-actions { gap: 6px; flex-shrink: 0; }
+  #adminBtn { display: none; }   /* "Administración" ya está en el menú lateral */
   .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
   .grid-cards { grid-template-columns: 1fr; }
   .h1 { font-size: 22px; }
@@ -494,6 +497,7 @@ textarea { resize: vertical; min-height: 90px; }
   .toasts { left: 12px; right: 12px; bottom: 12px; max-width: none; }
   .admin-panel { padding: 14px; }
 }
+@media (max-width: 480px) { #previewBtn .lbl { display: none; } }   /* solo icono: el nombre accesible va en aria-label */
 @media (max-width: 420px) {
   .hero-stats { gap: 12px; }
   .hero-actions { flex-direction: column; }
@@ -514,3 +518,101 @@ img{-webkit-user-drag:none;-webkit-touch-callout:none}
 #pdfPages { padding: 8px; }
 .pdf-page { display: block; margin: 0 auto 10px; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.25); max-width: none; }
 model-viewer { --poster-color: transparent; }
+
+
+/* =========================================================
+   MEJORAS DE EXPERIENCIA: animación, táctil y accesibilidad
+   · Solo transform/opacity (baratas para la GPU).
+   · Hover únicamente con cursor; en táctil el feedback es :active.
+   · Respeta prefers-reduced-motion (bloque final).
+   ========================================================= */
+:root {
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --lift: 0 6px 16px rgba(15, 31, 56, .16);
+}
+[data-theme="dark"] { --lift: 0 6px 16px rgba(0, 0, 0, .45); }
+
+a, button, .project-card, .gallery-tile { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* Foco visible (teclado) */
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.project-card:focus-visible, .gallery-tile:focus-visible { outline-offset: 3px; }
+.modal-dialog:focus { outline: none; }
+
+/* Keyframes */
+@keyframes fadeIn  { from { opacity: 0; } }
+@keyframes fadeOut { to   { opacity: 0; } }
+@keyframes dialogOut { to { opacity: 0; transform: translateY(8px) scale(.985); } }
+@keyframes sectionIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes itemIn  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes barGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes lbImg   { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
+
+/* Botones y controles: transición unificada */
+.btn, .icon-btn, .filter-chip, .tab, .nav-item {
+  transition: background-color .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease),
+              box-shadow .18s var(--ease), transform .16s var(--ease), opacity .18s;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--lift); }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 35%, transparent); }
+  .btn-ghost:hover:not(:disabled) { box-shadow: none; }
+  .icon-btn:hover, .filter-chip:hover { transform: translateY(-1px); }
+  .nav-item:hover:not(.active) { transform: translateX(2px); }
+}
+/* Pulsación (ratón y táctil) */
+.btn:active:not(:disabled), .icon-btn:active, .filter-chip:active, .tab:active { transform: scale(.97); box-shadow: none; transition-duration: .06s; }
+.nav-item:active { transform: scale(.98); background: var(--primary-soft); }
+.project-card:active, .gallery-tile:active, .contact-card:active { transform: scale(.985); }
+@media (hover: none) { .gallery-tile:active .overlay-txt { transform: none; } }   /* en táctil, el pie de foto se ve al pulsar */
+
+/* Estado de carga en botones (se antepone un spinner al texto) */
+.btn.is-loading { pointer-events: none; opacity: .85; }
+.btn.is-loading::before {
+  content: ''; width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite;
+}
+
+/* Indicador de sección activa en el menú */
+.nav-item { position: relative; }
+.nav-item::before {
+  content: ''; position: absolute; left: 0; top: 22%; bottom: 22%; width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--primary); transform: scaleY(0); transition: transform .25s var(--ease);
+}
+.nav-item.active::before { transform: scaleY(1); }
+
+/* Entrada de contenido (la dispara navigate()/filtros con la clase .entering) */
+.section.entering :is(.hero, .grid-2 > .card, .project-card, .gallery-tile, .skill-card, .tl-item, .contact-card) {
+  animation: itemIn .42s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 38ms);
+}
+.section.entering .skill-bar > span { transform-origin: left center; animation: barGrow .7s var(--ease) .12s backwards; }
+.admin-panel.tab-in { animation: itemIn .3s var(--ease); }
+
+/* Modales y lightbox: fundido de fondo + cierre suave */
+.modal.open, .lightbox.open { animation: fadeIn .2s ease; }
+.modal.closing, .lightbox.closing { animation: fadeOut .16s ease forwards; }
+.modal.closing .modal-dialog { animation: dialogOut .16s ease forwards; }
+.lb-swap { animation: lbImg .3s var(--ease); }
+.lb-close, .lb-nav { transition: background-color .18s, transform .16s var(--ease); }
+.lb-close:active { transform: scale(.92); }
+.lb-nav:active { transform: translateY(-50%) scale(.92); }
+
+/* Menú móvil: fundido del fondo (visibility evita capturar toques cuando está cerrado) */
+.overlay { opacity: 0; visibility: hidden; transition: opacity .25s var(--ease), visibility 0s .25s; }
+.overlay.show { opacity: 1; visibility: visible; transition: opacity .25s var(--ease); }
+
+/* Loader global: se desvanece al terminar */
+.app-loader { transition: opacity .35s var(--ease), visibility 0s .35s; }
+.app-loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* Animaciones fuera: pestañas del panel y toasts */
+.tab { transition: color .18s var(--ease), border-color .18s var(--ease), transform .16s var(--ease); }
+
+/* Preferencia del sistema: movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
+  }
+  .spinner, .btn.is-loading::before { animation-duration: 1.6s !important; animation-iteration-count: infinite !important; }
+}
