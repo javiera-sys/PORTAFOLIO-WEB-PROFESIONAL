@@ -104,7 +104,7 @@
       "id": "p3",
       "name": "Gabinete",
       "category": "SolidWorks",
-      "description": "Es una gabinete vertical cuenta con dos puertas y dos cajones, forrado de triplay de teca flexible y entrepaños.",
+      "description": "Gabinete alto de madera en tono natural claro con un acabado rústico y líneas rectas.\nDestaca por sus dos puertas frontales con paneles de cristal divididos por listones de madera y un amplio cajón inferior.\nSe apoya sobre una base metálica tono negro mate y cuenta con un tirador oscuro alargado en el cajón, aportando un estilo funcional y elegante.",
       "date": "2023-05",
       "software": [
         "SolidWork",
@@ -136,7 +136,7 @@
       "id": "p4",
       "name": "Cama King",
       "category": "SolidWorks",
-      "description": "Cama de tamaño king, madera sólida y tableros de triplay de teca.",
+      "description": "Cama de madera sólida y tablero de teca pinta, en tono marrón medio con un llamativo y marcado patrón de vetas en el cabecero y pie de cama.\nPresenta una estructura sólida con postes verticales que sobresalen en las esquinas, aportando un diseño rústico y contemporáneo.",
       "date": "2022-10",
       "software": [
         "SolidWork",
@@ -168,7 +168,7 @@
       "id": "p5",
       "name": "Banca",
       "category": "SolidWorks",
-      "description": "Banca forrada de triplay de teca, y para los costados triplay de teca flexible, cuerpo de cimbra.",
+      "description": "Banca de madera rústica en tono marrón con un amplio asiento superior tapizado en cuero o piel oscura.\nDestaca por su diseño moderno en forma de cápsula, con laterales y bordes completamente curvos y redondeados.\nCuenta con un espacio abierto inferior a modo de estantería, dividido en dos secciones, y descansa sobre una base de madera.",
       "date": "2024-02",
       "software": [
         "SolidWork",
@@ -266,7 +266,7 @@
       "category": "SolidWork",
       "date": "2024-06",
       "featured": false,
-      "description": "Cómoda vertical, con cajoneras diferentes tipos de textura, jaladeras de metal.",
+      "description": "Cómoda alta de madera en tono marrón oscuro con una veta claramente visible y acabado rústico.\nCuenta con cuatro amplios cajones apilados, cada uno equipado con un tirador horizontal de metal oscuro tipo forjado.\nDescansa sobre una llamativa base de madera tono negro con un diseño angular y geométrico que le aporta un marcado estilo rustico.",
       "software": [
         "SolidWork",
         "AutoCad"
@@ -298,7 +298,7 @@
       "category": "Solidworks",
       "date": "2026-06",
       "featured": false,
-      "description": "Comedor redondo, con cubierta de resina y base sólida.",
+      "description": "Mesa de comedor redonda de madera en tono natural con veta visible y un grosor considerable en su borde. \nDestaca por una llamativa incrustación gris oscura con textura fluida que cruza la superficie simulando un río.\nSe apoya sobre una base de tres patas gruesas e inclinadas de madera, unidas por un travesaño triangular inferior.",
       "software": [
         "Solidworks",
         "AutoCAD"
