@@ -639,17 +639,18 @@
   "apps": [
     {
       "id": "a1",
-      "name": "Calculadora de despiece",
-      "description": "Herramienta para optimizar el corte de tableros y calcular materiales.",
+      "name": "CUTFIX PRO",
+      "description": "Aplicación web para **optimizar el corte de tableros** (melamina, MDF, triplay, etc.) en carpintería y fabricación de muebles. A partir de una lista de piezas y de los tableros disponibles, calcula cómo acomodarlas para **usar menos tableros, generar menos desperdicio y reducir costos**, y produce planos a escala, hojas de corte y PDF listos para el taller.",
       "image": "assets/app1.jpg",
       "technologies": [
         "HTML5",
         "CSS3",
         "JavaScript"
       ],
-      "functionality": "Calcula cantidad de piezas, área total y desperdicio estimado.",
-      "url": "https://github.com/",
-      "repo": "https://github.com/"
+      "functionality": "✨ Características principales\n\n- **Cuatro estrategias de corte**: por longitud, por anchura, mixto (largo + ancho) y modo **Óptimo** que compara todas y elige la mejor.\n- **Criterio de prioridad configurable**: menos tableros, menos desperdicio, menor costo o menos cortes.\n- **Respeto de la veta** del tablero y de cada pieza, con control de rotación (global y por pieza).\n- **Kerf (grosor del disco de sierra)**, márgenes perimetrales, tolerancias y compensación de corte.\n- **Planos a escala en SVG** con zoom vectorial, cotas, líneas de corte, flechas de veta, etiquetas y sobrantes.\n- **PDF de optimización** completo (resumen general + una hoja por patrón de corte) y **PDF del tablero actual**.\n- **Importación desde Excel** (uno o varios archivos), con mapeo automático de columnas y revisión previa.\n- **Habilitados**: cada Excel es un conjunto de piezas por mueble; se elige cuántos muebles cortar.\n- **Modo sin stock**: tableros ilimitados para calcular cuántos se necesitan.\n- **Dictado por voz** de tableros y piezas, con tabla editable antes de cargar.\n- **Gestión de sobrantes** reutilizables.\n- **Hoja de corte** imprimible para el operador.\n- **Guardado automático** en el navegador y exportación/importación de proyectos en `.json`.\n- **Tutorial integrado** e interfaz adaptable a móvil (barra inferior).",
+      "url": "https://javiera-sys.github.io/CUTFIX/",
+      "repo": "https://github.com/javiera-sys/CUTFIX.git",
+      "hidden": false
     }
   ],
   "skills": [
@@ -666,27 +667,6 @@
       "category": "Diseño CAD",
       "level": 88,
       "description": "Planos técnicos 2D y documentación."
-    },
-    {
-      "id": "s3",
-      "name": "Mastercam",
-      "category": "Diseño CAM",
-      "level": 80,
-      "description": "Programación y simulación de mecanizado."
-    },
-    {
-      "id": "s4",
-      "name": "Blender",
-      "category": "Modelado 3D",
-      "level": 85,
-      "description": "Modelado, renderizado y animación."
-    },
-    {
-      "id": "s5",
-      "name": "Tecnología de la madera",
-      "category": "Tecnología de la madera",
-      "level": 92,
-      "description": "Ensamble, corte y acabado profesional."
     },
     {
       "id": "s6",
@@ -726,10 +706,11 @@
     }
   ],
   "contact": {
-    "email": "tucorreo@ejemplo.com",
+    "email": "francisco9corona0@gmail.com",
     "linkedin": "https://www.linkedin.com/",
     "github": "https://github.com/",
-    "phone": "+00 000 000 000",
-    "cv": "documents/cv.pdf"
+    "phone": "+52 4345621724",
+    "cv": "documents/cv.pdf",
+    "hide": {}
   }
 }
